@@ -34,7 +34,7 @@ const regions = [
   { id: '1118', name: 'Уфа' }
 ];
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = 'https://skillpulse-6ayv.onrender.com';
 
 function App() {
   const [query, setQuery] = useState('python');
