@@ -19,7 +19,6 @@ import {
   Link
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import ReactWordcloud from 'react-wordcloud';
 import cloud from 'd3-cloud';
 
 const regions = [
