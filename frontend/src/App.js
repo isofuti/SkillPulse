@@ -84,24 +84,6 @@ function App() {
     return 'Не указана';
   };
 
-  const fetchData = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: query,
-          regions: selectedRegions,
-        }),
-      });
-      // ... existing code ...
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
   const WordCloud = ({ words }) => {
     const canvasRef = useRef(null);
 
