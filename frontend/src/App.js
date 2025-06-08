@@ -34,7 +34,7 @@ const regions = [
   { id: '1118', name: 'Уфа' }
 ];
 
-const API_BASE = process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 function App() {
   const [query, setQuery] = useState('python');
@@ -42,6 +42,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const [eventSource, setEventSource] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleSearch = () => {
     if (eventSource) {
@@ -52,7 +53,7 @@ function App() {
     setStats(null);
 
     const regionsParam = selectedRegions.join(',');
-    const newEventSource = new EventSource(`${API_BASE}/api/vacancies/stream?query=${encodeURIComponent(query)}&areas=${regionsParam}`);
+    const newEventSource = new EventSource(`${API_BASE_URL}/api/vacancies/stream?query=${encodeURIComponent(query)}&areas=${regionsParam}`);
 
     newEventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -86,6 +87,25 @@ function App() {
       return `до ${to.toLocaleString()} ${currency}`;
     }
     return 'Не указана';
+  };
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query,
+          regions: selectedRegions,
+        }),
+      });
+      // ... existing code ...
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Failed to fetch data. Please try again later.');
+    }
   };
 
   return (
