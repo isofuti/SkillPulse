@@ -99,7 +99,6 @@ function App() {
       // ... existing code ...
     } catch (error) {
       console.error('Error:', error);
-      setError('Failed to fetch data. Please try again later.');
     }
   };
 
