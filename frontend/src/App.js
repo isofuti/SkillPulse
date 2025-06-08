@@ -6,10 +6,6 @@ import {
   CircularProgress,
   TextField,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Chip,
   Grid,
   Paper,
@@ -42,7 +38,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const [eventSource, setEventSource] = useState(null);
-  const [error, setError] = useState(null);
 
   const handleSearch = () => {
     if (eventSource) {
