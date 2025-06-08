@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import ReactWordcloud from 'react-wordcloud';
+import cloud from 'd3-cloud';
 
 const regions = [
   { id: '1', name: 'Москва' },
@@ -106,6 +107,54 @@ function App() {
       console.error('Error:', error);
       setError('Failed to fetch data. Please try again later.');
     }
+  };
+
+  const WordCloud = ({ words }) => {
+    const canvasRef = useRef(null);
+
+    useEffect(() => {
+      if (!words || words.length === 0) return;
+
+      const width = 600;
+      const height = 400;
+
+      const layout = cloud()
+        .size([width, height])
+        .words(words.map(d => ({
+          text: d.text,
+          size: d.value * 10
+        })))
+        .padding(5)
+        .rotate(() => ~~(Math.random() * 2) * 90)
+        .font("Impact")
+        .fontSize(d => d.size)
+        .on("end", draw);
+
+      layout.start();
+
+      function draw(words) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, width, height);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#1a73e8";
+
+        words.forEach(word => {
+          ctx.font = `${word.size}px Impact`;
+          ctx.fillText(word.text, word.x + width / 2, word.y + height / 2);
+        });
+      }
+    }, [words]);
+
+    return (
+      <canvas
+        ref={canvasRef}
+        width={600}
+        height={400}
+        style={{ width: '100%', height: 'auto' }}
+      />
+    );
   };
 
   return (
@@ -216,26 +265,16 @@ function App() {
               </Paper>
             )}
 
-            {stats.word_cloud && Object.keys(stats.word_cloud).length > 0 && (
-              <Paper sx={{ p: 3, mb: 3 }}>
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
-                  Популярные слова
+                  Популярные навыки
                 </Typography>
-                <Box sx={{ height: 400 }}>
-                  <ReactWordcloud
-                    words={Object.entries(stats.word_cloud).map(([text, value]) => ({
-                      text,
-                      value
-                    }))}
-                    options={{
-                      rotations: 2,
-                      rotationAngles: [-90, 0],
-                      fontSizes: [12, 60]
-                    }}
-                  />
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <WordCloud words={stats.wordCloud} />
                 </Box>
               </Paper>
-            )}
+            </Grid>
 
             {stats.vacancies && stats.vacancies.length > 0 && (
               <Paper sx={{ p: 3 }}>
