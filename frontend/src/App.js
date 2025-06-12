@@ -15,10 +15,13 @@ import {
   Link,
   LinearProgress,
   ThemeProvider,
-  createTheme
+  createTheme,
+  Avatar
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import cloud from 'd3-cloud';
+import * as d3 from 'd3';
+import Logo from './assets/Logo.png';
 
 // Создаем тему с новой цветовой схемой
 const theme = createTheme({
@@ -185,78 +188,91 @@ function App() {
   };
 
   const WordCloud = ({ words }) => {
-    const canvasRef = useRef(null);
-    const [isRendering, setIsRendering] = useState(false);
+    const svgRef = useRef(null);
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
     useEffect(() => {
-      if (!words || Object.keys(words).length === 0) return;
-      
-      setIsRendering(true);
-      const width = 600;
-      const height = 400;
+      if (!words || !svgRef.current) return;
+
+      const updateDimensions = () => {
+        const container = svgRef.current.parentElement;
+        setDimensions({
+          width: container.clientWidth,
+          height: Math.max(400, container.clientHeight)
+        });
+      };
+
+      updateDimensions();
+      window.addEventListener('resize', updateDimensions);
+      return () => window.removeEventListener('resize', updateDimensions);
+    }, [words]);
+
+    useEffect(() => {
+      if (!words || !svgRef.current || dimensions.width === 0) return;
 
       const layout = cloud()
-        .size([width, height])
-        .words(Object.entries(words).map(([text, value]) => ({
-          text,
-          size: Math.max(20, Math.min(80, value * 10)) // Ограничиваем размер слов
+        .size([dimensions.width, dimensions.height])
+        .words(words.map(word => ({
+          text: word.text,
+          size: word.value * 2,
+          value: word.value
         })))
         .padding(5)
         .rotate(() => ~~(Math.random() * 2) * 90)
-        .font("Impact")
+        .font("Roboto")
         .fontSize(d => d.size)
-        .on("end", (words) => {
-          const canvas = canvasRef.current;
-          if (!canvas) return;
-          
-          const ctx = canvas.getContext("2d");
-          ctx.clearRect(0, 0, width, height);
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          
-          // Используем градиент для более привлекательного отображения
-          const gradient = ctx.createLinearGradient(0, 0, width, height);
-          gradient.addColorStop(0, "#1a73e8");
-          gradient.addColorStop(1, "#4285f4");
-          ctx.fillStyle = gradient;
-
-          words.forEach(word => {
-            ctx.font = `${word.size}px Impact`;
-            ctx.fillText(word.text, word.x + width / 2, word.y + height / 2);
-          });
-          
-          setIsRendering(false);
-        });
+        .on("end", draw);
 
       layout.start();
-    }, [words]);
+
+      function draw(words) {
+        const svg = d3.select(svgRef.current);
+        svg.selectAll("*").remove();
+
+        const g = svg.append("g")
+          .attr("transform", `translate(${dimensions.width / 2},${dimensions.height / 2})`);
+
+        g.selectAll("text")
+          .data(words)
+          .enter().append("text")
+          .style("font-size", d => `${d.size}px`)
+          .style("font-family", "Roboto")
+          .style("fill", d => {
+            // Создаем градиент цветов на основе значения
+            const hue = 200 + (d.value * 40); // От голубого к синему
+            const saturation = 70 + (d.value * 20); // Увеличиваем насыщенность
+            const lightness = 50 + (d.value * 10); // Увеличиваем яркость
+            return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+          })
+          .style("opacity", d => 0.7 + (d.value * 0.3)) // Увеличиваем прозрачность для больших слов
+          .attr("text-anchor", "middle")
+          .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
+          .text(d => d.text)
+          .style("cursor", "pointer")
+          .on("mouseover", function() {
+            d3.select(this)
+              .transition()
+              .duration(200)
+              .style("opacity", 1)
+              .style("font-weight", "bold");
+          })
+          .on("mouseout", function() {
+            d3.select(this)
+              .transition()
+              .duration(200)
+              .style("opacity", d => 0.7 + (d.value * 0.3))
+              .style("font-weight", "normal");
+          });
+      }
+    }, [words, dimensions]);
 
     return (
-      <Box sx={{ position: 'relative', minHeight: 400 }}>
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={400}
-          style={{ width: '100%', height: 'auto' }}
-        />
-        {isRendering && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)'
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        )}
-      </Box>
+      <svg
+        ref={svgRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        style={{ width: '100%', height: '100%' }}
+      />
     );
   };
 
@@ -265,12 +281,35 @@ function App() {
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
         <Container maxWidth="lg">
           <Box sx={{ my: 4 }}>
-            <Typography variant="h3" component="h1" gutterBottom align="center">
-              SkillPulse
-            </Typography>
-            <Typography variant="h5" component="h2" gutterBottom align="center" color="secondary">
-              Анализ рынка труда
-            </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              mb: 3,
+              gap: 2
+            }}>
+              <Avatar
+                src={Logo}
+                alt="SkillPulse Logo"
+                sx={{ 
+                  width: 80, 
+                  height: 80,
+                  boxShadow: '0px 4px 12px rgba(0,0,0,0.1)',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                    transition: 'transform 0.3s ease'
+                  }
+                }}
+              />
+              <Box>
+                <Typography variant="h3" component="h1" gutterBottom>
+                  SkillPulse
+                </Typography>
+                <Typography variant="h5" component="h2" color="secondary">
+                  Анализ рынка труда
+                </Typography>
+              </Box>
+            </Box>
 
             <Paper sx={{ p: 3, mb: 3 }}>
               <Grid container spacing={2} alignItems="center">
@@ -331,6 +370,7 @@ function App() {
                       backgroundColor: 'rgba(15, 185, 193, 0.1)',
                       '& .MuiLinearProgress-bar': {
                         backgroundColor: '#0fb9c1',
+                        transition: 'transform 0.4s linear',
                       }
                     }} 
                   />
