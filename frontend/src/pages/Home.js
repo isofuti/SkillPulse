@@ -335,26 +335,40 @@ const Home = () => {
               textAlign: 'center',
               color: '#ECF0F1',
               fontWeight: 700,
-              mb: 6,
+              mb: 4,
               background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Добро пожаловать в SkillPulse
+            SkillPulse
+          </Typography>
+          <Typography
+            variant="h4"
+            component="h2"
+            sx={{
+              textAlign: 'center',
+              color: '#ECF0F1',
+              mb: 4,
+              fontWeight: 600,
+            }}
+          >
+            Аналитика, которая дышит рынком
           </Typography>
           <Typography
             variant="h5"
-            component="h2"
+            component="h3"
             sx={{
               textAlign: 'center',
               color: '#ECF0F1',
               mb: 8,
               maxWidth: '800px',
               margin: '0 auto 60px',
+              opacity: 0.9,
             }}
           >
-            Аналитическая платформа для HR-специалистов, предоставляющая актуальные данные о рынке труда в реальном времени
+            Единственный российский инструмент, который показывает пульс рынка труда 
+            с обновлением каждый час и возможностью настроить Telegram-уведомления
           </Typography>
         </AnimatedSection>
 
