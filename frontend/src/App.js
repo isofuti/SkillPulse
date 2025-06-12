@@ -14,7 +14,6 @@ import {
   CardActions,
   Link,
   LinearProgress,
-  useTheme,
   ThemeProvider,
   createTheme
 } from '@mui/material';
