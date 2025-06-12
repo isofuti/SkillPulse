@@ -136,6 +136,17 @@ function App() {
     newEventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        
+        // Проверяем и форматируем данные перед установкой
+        if (data.word_cloud && typeof data.word_cloud === 'object') {
+          // Преобразуем word_cloud в нужный формат, если необходимо
+          const formattedWordCloud = Object.entries(data.word_cloud).reduce((acc, [key, value]) => {
+            acc[key] = typeof value === 'number' ? value : 1;
+            return acc;
+          }, {});
+          data.word_cloud = formattedWordCloud;
+        }
+
         setStats(data);
         
         if (data.total_vacancies > 0) {
@@ -217,11 +228,21 @@ function App() {
     useEffect(() => {
       if (!words || !svgRef.current || dimensions.width === 0) return;
 
+      // Преобразуем данные в нужный формат
+      const formattedWords = typeof words === 'object' && words !== null
+        ? Object.entries(words).map(([text, value]) => ({
+            text,
+            value: typeof value === 'number' ? value : 1
+          }))
+        : [];
+
+      if (formattedWords.length === 0) return;
+
       const layout = cloud()
         .size([dimensions.width, dimensions.height])
-        .words(words.map(word => ({
+        .words(formattedWords.map(word => ({
           text: word.text,
-          size: word.value * 2,
+          size: Math.max(20, Math.min(80, word.value * 10)), // Ограничиваем размер слов
           value: word.value
         })))
         .padding(5)
@@ -245,13 +266,12 @@ function App() {
           .style("font-size", d => `${d.size}px`)
           .style("font-family", "Roboto")
           .style("fill", d => {
-            // Создаем градиент цветов на основе значения
-            const hue = 200 + (d.value * 40); // От голубого к синему
-            const saturation = 70 + (d.value * 20); // Увеличиваем насыщенность
-            const lightness = 50 + (d.value * 10); // Увеличиваем яркость
+            const hue = 200 + (d.value * 40);
+            const saturation = 70 + (d.value * 20);
+            const lightness = 50 + (d.value * 10);
             return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
           })
-          .style("opacity", d => 0.7 + (d.value * 0.3)) // Увеличиваем прозрачность для больших слов
+          .style("opacity", d => 0.7 + (d.value * 0.3))
           .attr("text-anchor", "middle")
           .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
           .text(d => d.text)
