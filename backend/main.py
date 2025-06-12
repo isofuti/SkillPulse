@@ -377,6 +377,10 @@ async def stream_vacancies(query: str, areas: str):
                                 words = clean_text(text).split()
                                 all_words.extend(words)
                                 
+                                # Обновляем облако слов
+                                combined_text = " ".join(all_words)
+                                word_cloud = get_word_frequency(combined_text)
+                                
                                 # Добавляем вакансию в список
                                 vacancy = {
                                     "id": item['id'],
@@ -400,20 +404,14 @@ async def stream_vacancies(query: str, areas: str):
                         partial = {
                             "total_vacancies": total_vacancies,
                             "unique_vacancies": len(processed_vacancy_ids),
-                            "vacancies_with_salary": sum(1 for s in all_salaries if s is not None),
-                            "vacancies_without_salary": len(processed_vacancy_ids) - sum(1 for s in all_salaries if s is not None),
-                            "average_salary": float(np.mean(all_salaries)) if all_salaries else None,
-                            "median_salary": float(np.median(all_salaries)) if all_salaries else None,
+                            "vacancies_with_salary": sum(1 for s in all_salaries if s),
+                            "vacancies_without_salary": len(processed_vacancy_ids) - sum(1 for s in all_salaries if s),
+                            "average_salary": sum(all_salaries) / len(all_salaries) if all_salaries else None,
+                            "median_salary": sorted(all_salaries)[len(all_salaries)//2] if all_salaries else None,
                             "salary_distribution": get_salary_distribution(all_salaries),
-                            "word_cloud": dict(Counter(all_words).most_common(50)),
-                            "area_stats": {k: {
-                                "total": int(v["total"]),
-                                "with_salary": int(v["with_salary"]),
-                                "without_salary": int(v["without_salary"]),
-                                "average_salary": float(v["average_salary"]) if v["average_salary"] else None,
-                                "median_salary": float(v["median_salary"]) if v["median_salary"] else None
-                            } for k, v in area_stats.items()},
-                            "vacancies": vacancies_list
+                            "word_cloud": word_cloud,
+                            "area_stats": area_stats,
+                            "vacancies": vacancies_list[-20:]  # Отправляем последние 20 вакансий
                         }
                         yield f"data: {json.dumps(partial, ensure_ascii=False)}\n\n"
                         
