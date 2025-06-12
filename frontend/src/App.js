@@ -88,16 +88,16 @@ function App() {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-      if (!words || words.length === 0) return;
+      if (!words || Object.keys(words).length === 0) return;
 
       const width = 600;
       const height = 400;
 
       const layout = cloud()
         .size([width, height])
-        .words(words.map(d => ({
-          text: d.text,
-          size: d.value * 10
+        .words(Object.entries(words).map(([text, value]) => ({
+          text,
+          size: value * 10
         })))
         .padding(5)
         .rotate(() => ~~(Math.random() * 2) * 90)
@@ -109,6 +109,8 @@ function App() {
 
       function draw(words) {
         const canvas = canvasRef.current;
+        if (!canvas) return;
+        
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, width, height);
         ctx.textAlign = "center";
@@ -246,7 +248,7 @@ function App() {
                   Популярные навыки
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <WordCloud words={stats.wordCloud} />
+                  <WordCloud words={stats.word_cloud} />
                 </Box>
               </Paper>
             </Grid>

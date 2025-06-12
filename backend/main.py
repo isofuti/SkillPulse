@@ -79,8 +79,10 @@ class VacancyStats(BaseModel):
 
 def clean_text(text: str) -> str:
     """Очистка текста от специальных символов и цифр"""
-    # Удаляем специальные символы и цифры, оставляем только буквы
-    text = re.sub(r'[^a-zA-Zа-яА-ЯёЁ\s]', ' ', text)
+    if not text:
+        return ""
+    # Удаляем специальные символы, оставляем буквы, цифры и некоторые специальные символы
+    text = re.sub(r'[^a-zA-Zа-яА-ЯёЁ0-9\s\+\#\.]', ' ', text)
     # Приводим к нижнему регистру
     text = text.lower()
     # Удаляем лишние пробелы
@@ -88,10 +90,52 @@ def clean_text(text: str) -> str:
     return text
 
 def get_word_frequency(text: str) -> Dict[str, int]:
+    """Получение частоты слов с учетом технических терминов"""
+    if not text:
+        return {}
+        
+    # Список технических терминов и навыков, которые нужно сохранить
+    tech_terms = {
+        'python', 'java', 'javascript', 'typescript', 'react', 'angular', 'vue',
+        'node.js', 'django', 'flask', 'fastapi', 'spring', 'hibernate',
+        'sql', 'postgresql', 'mysql', 'mongodb', 'redis',
+        'docker', 'kubernetes', 'aws', 'azure', 'gcp',
+        'git', 'ci/cd', 'jenkins', 'gitlab', 'github',
+        'rest', 'graphql', 'api', 'microservices',
+        'html', 'css', 'sass', 'less', 'bootstrap',
+        'linux', 'unix', 'windows', 'macos',
+        'agile', 'scrum', 'kanban',
+        'jira', 'confluence', 'bitbucket',
+        'tensorflow', 'pytorch', 'keras',
+        'machine learning', 'ai', 'ml', 'data science',
+        'devops', 'sre', 'qa', 'testing',
+        'frontend', 'backend', 'fullstack',
+        'c++', 'c#', '.net', 'php', 'ruby', 'go', 'rust',
+        'swift', 'kotlin', 'android', 'ios',
+        'security', 'cybersecurity',
+        'blockchain', 'web3', 'solidity'
+    }
+    
+    # Добавляем технические термины в нижнем регистре
+    tech_terms = {term.lower() for term in tech_terms}
+    
     words = clean_text(text).split()
-    # Удаляем стоп-слова и короткие слова
-    words = [word for word in words if word not in russian_stopwords and len(word) > 2]
-    return dict(Counter(words).most_common(50))
+    
+    # Фильтруем слова
+    filtered_words = []
+    for word in words:
+        # Сохраняем технические термины
+        if word in tech_terms:
+            filtered_words.append(word)
+        # Сохраняем слова длиной более 2 символов, не являющиеся стоп-словами
+        elif len(word) > 2 and word not in russian_stopwords:
+            filtered_words.append(word)
+    
+    # Создаем словарь частот
+    word_freq = Counter(filtered_words)
+    
+    # Сортируем по частоте и берем топ-50
+    return dict(word_freq.most_common(50))
 
 def get_salary_distribution(salaries: List[float]) -> Dict[str, int]:
     """Создание гистограммы зарплат"""
