@@ -1,8 +1,12 @@
 import React from 'react';
-import { Container, Typography, Box, Paper, Grid, Button } from '@mui/material';
+import { Container, Typography, Box, Paper, Grid, Button, Card, CardContent } from '@mui/material';
 import { Link } from 'react-router-dom';
 import styled from '@emotion/styled';
-import { keyframes } from '@mui/system';
+import { keyframes } from '@emotion/react';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import SpeedIcon from '@mui/icons-material/Speed';
+import SecurityIcon from '@mui/icons-material/Security';
 
 const pulseAnimation = keyframes`
   0% {
@@ -71,6 +75,41 @@ const dotAnimation = keyframes`
   100% {
     transform: scale(0.8);
     opacity: 0.2;
+  }
+`;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const float = keyframes`
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+`;
+
+const pulse = keyframes`
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
   }
 `;
 
@@ -234,6 +273,43 @@ const AnimatedDot = styled(Box)({
   animation: `${dotAnimation} 2s ease-in-out infinite`,
 });
 
+const StyledCard = styled(Card)({
+  background: 'rgba(44, 62, 80, 0.7)',
+  backdropFilter: 'blur(10px)',
+  borderRadius: '20px',
+  border: '1px solid rgba(15, 185, 193, 0.1)',
+  transition: 'all 0.3s ease',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 8px 30px rgba(15, 185, 193, 0.2)',
+    border: '1px solid rgba(15, 185, 193, 0.3)',
+  },
+});
+
+const IconWrapper = styled(Box)({
+  width: '60px',
+  height: '60px',
+  borderRadius: '50%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: '20px',
+  background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
+  color: '#ECF0F1',
+  animation: `${float} 3s ease-in-out infinite`,
+  '& svg': {
+    fontSize: '30px',
+  },
+});
+
+const AnimatedSection = styled(Box)({
+  animation: `${fadeIn} 0.8s ease-out`,
+  marginBottom: '60px',
+});
+
 const Home = () => {
   return (
     <>
@@ -249,290 +325,124 @@ const Home = () => {
         <AnimatedDot style={{ top: '70%', right: '40%' }} />
         <AnimatedDot style={{ bottom: '20%', left: '50%' }} />
       </AnimatedBackground>
-      <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
-          {/* Hero Section */}
-          <Paper 
-            sx={{ 
-              p: { xs: 3, md: 6 }, 
-              mb: 4,
-              background: 'linear-gradient(135deg, rgba(44, 62, 80, 0.95) 0%, rgba(15, 185, 193, 0.95) 100%)',
-              color: 'white',
-              borderRadius: '16px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-              position: 'relative',
-              overflow: 'hidden',
-              backdropFilter: 'blur(10px)',
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <AnimatedSection>
+          <Typography
+            variant="h2"
+            component="h1"
+            gutterBottom
+            sx={{
+              textAlign: 'center',
+              color: '#ECF0F1',
+              fontWeight: 700,
+              mb: 6,
+              background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
           >
-            <PulseWave />
-            <Grid container spacing={4} alignItems="center">
-              <Grid item xs={12} md={6}>
-                <StyledTypography 
-                  variant="h3" 
-                  gutterBottom 
-                  sx={{ 
-                    fontWeight: 700,
-                    fontFamily: '"Montserrat", sans-serif',
-                  }}
-                >
-                  SkillPulse
-                </StyledTypography>
-                <StyledTypography 
-                  variant="h5" 
-                  gutterBottom 
-                  sx={{ 
-                    mb: 3, 
-                    opacity: 0.9,
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: 600,
-                  }}
-                >
-                  Аналитика, которая дышит рынком
-                </StyledTypography>
-                <StyledTypography 
-                  variant="body1" 
-                  paragraph 
-                  sx={{ 
-                    mb: 4, 
-                    opacity: 0.8,
-                    fontSize: '1.1rem',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  Единственный российский инструмент, который показывает пульс рынка труда 
-                  с обновлением каждый час и возможностью настроить Telegram-уведомления.
-                </StyledTypography>
-                <StyledButton
-                  component={Link}
-                  to="/analysis"
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                >
-                  Начать анализ
-                </StyledButton>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Box
-                  component="img"
-                  src="/hero-image.png"
-                  alt="SkillPulse Analytics"
-                  sx={{
-                    width: '100%',
-                    maxWidth: 500,
-                    height: 'auto',
-                    display: { xs: 'none', md: 'block' },
-                    filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.1))',
-                  }}
-                />
-              </Grid>
-            </Grid>
-          </Paper>
+            Добро пожаловать в SkillPulse
+          </Typography>
+          <Typography
+            variant="h5"
+            component="h2"
+            sx={{
+              textAlign: 'center',
+              color: '#ECF0F1',
+              mb: 8,
+              maxWidth: '800px',
+              margin: '0 auto 60px',
+            }}
+          >
+            Аналитическая платформа для HR-специалистов, предоставляющая актуальные данные о рынке труда в реальном времени
+          </Typography>
+        </AnimatedSection>
 
-          {/* Features Section */}
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <FeatureCard>
-                <Box sx={{ fontSize: '2rem', mb: 2, color: 'white' }}>📊</Box>
-                <StyledTypography 
-                  variant="h6" 
-                  gutterBottom 
-                  sx={{ 
-                    fontWeight: 600,
-                    color: 'white',
-                  }}
-                >
-                  Актуальность
-                </StyledTypography>
-                <StyledTypography 
-                  variant="body2" 
-                  sx={{ 
-                    lineHeight: 1.6,
-                    color: 'rgba(255, 255, 255, 0.8)',
-                  }}
-                >
-                  Обновление данных каждый час, чтобы вы всегда были в курсе последних 
-                  изменений на рынке труда.
-                </StyledTypography>
-              </FeatureCard>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FeatureCard>
-                <Box sx={{ fontSize: '2rem', mb: 2, color: 'white' }}>⚙️</Box>
-                <StyledTypography 
-                  variant="h6" 
-                  gutterBottom 
-                  sx={{ 
-                    fontWeight: 600,
-                    color: 'white',
-                  }}
-                >
-                  Простота
-                </StyledTypography>
-                <StyledTypography 
-                  variant="body2" 
-                  sx={{ 
-                    lineHeight: 1.6,
-                    color: 'rgba(255, 255, 255, 0.8)',
-                  }}
-                >
-                  Минимум действий — максимум пользы. PDF и CSV отчёты за 2 минуты, 
-                  без сложных настроек.
-                </StyledTypography>
-              </FeatureCard>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FeatureCard>
-                <Box sx={{ fontSize: '2rem', mb: 2, color: 'white' }}>🚀</Box>
-                <StyledTypography 
-                  variant="h6" 
-                  gutterBottom 
-                  sx={{ 
-                    fontWeight: 600,
-                    color: 'white',
-                  }}
-                >
-                  Скорость
-                </StyledTypography>
-                <StyledTypography 
-                  variant="body2" 
-                  sx={{ 
-                    lineHeight: 1.6,
-                    color: 'rgba(255, 255, 255, 0.8)',
-                  }}
-                >
-                  Мгновенные алерты, быстрые отчёты и интеграция с Telegram для 
-                  оперативного реагирования.
-                </StyledTypography>
-              </FeatureCard>
-            </Grid>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <AnimatedSection>
+              <StyledCard>
+                <CardContent sx={{ p: 4 }}>
+                  <IconWrapper>
+                    <TrendingUpIcon />
+                  </IconWrapper>
+                  <Typography variant="h5" component="h3" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
+                    Анализ рынка труда
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
+                    Получайте актуальную информацию о трендах, зарплатах и требованиях к специалистам в различных отраслях
+                  </Typography>
+                  <StyledButton variant="contained" fullWidth>
+                    Подробнее
+                  </StyledButton>
+                </CardContent>
+              </StyledCard>
+            </AnimatedSection>
           </Grid>
 
-          {/* Target Audience Section */}
-          <Paper 
-            sx={{ 
-              p: { xs: 3, md: 6 }, 
-              mt: 4, 
-              mb: 4,
-              background: 'linear-gradient(135deg, rgba(44, 62, 80, 0.95) 0%, rgba(15, 185, 193, 0.95) 100%)',
-              color: 'white',
-              borderRadius: '16px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-              position: 'relative',
-              overflow: 'hidden',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
-            <PulseWave />
-            <StyledTypography 
-              variant="h5" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600,
-                fontFamily: '"Montserrat", sans-serif',
-                mb: 4,
-                color: 'white',
-              }}
-            >
-              Для кого SkillPulse?
-            </StyledTypography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TargetAudienceCard>
-                  <StyledTypography 
-                    variant="h6" 
-                    gutterBottom 
-                    sx={{ 
-                      fontWeight: 600,
-                      color: 'white',
-                    }}
-                  >
-                    Рекрутинговые агентства
-                  </StyledTypography>
-                  <StyledTypography 
-                    variant="body2" 
-                    sx={{ 
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Быстрые решения и поиск новых регионов для размещения вакансий
-                  </StyledTypography>
-                </TargetAudienceCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TargetAudienceCard>
-                  <StyledTypography 
-                    variant="h6" 
-                    gutterBottom 
-                    sx={{ 
-                      fontWeight: 600,
-                      color: 'white',
-                    }}
-                  >
-                    HR-отделы компаний
-                  </StyledTypography>
-                  <StyledTypography 
-                    variant="body2" 
-                    sx={{ 
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    PDF и CSV отчёты, уменьшение Excel-зависимости
-                  </StyledTypography>
-                </TargetAudienceCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TargetAudienceCard>
-                  <StyledTypography 
-                    variant="h6" 
-                    gutterBottom 
-                    sx={{ 
-                      fontWeight: 600,
-                      color: 'white',
-                    }}
-                  >
-                    IT-стартапы
-                  </StyledTypography>
-                  <StyledTypography 
-                    variant="body2" 
-                    sx={{ 
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Понимание перегретости рынка и поиск альтернативных регионов
-                  </StyledTypography>
-                </TargetAudienceCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TargetAudienceCard>
-                  <StyledTypography 
-                    variant="h6" 
-                    gutterBottom 
-                    sx={{ 
-                      fontWeight: 600,
-                      color: 'white',
-                    }}
-                  >
-                    Онлайн-школы (EdTech)
-                  </StyledTypography>
-                  <StyledTypography 
-                    variant="body2" 
-                    sx={{ 
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Формирование курсов по реальному спросу на рынке
-                  </StyledTypography>
-                </TargetAudienceCard>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Box>
+          <Grid item xs={12} md={6}>
+            <AnimatedSection>
+              <StyledCard>
+                <CardContent sx={{ p: 4 }}>
+                  <IconWrapper>
+                    <AssessmentIcon />
+                  </IconWrapper>
+                  <Typography variant="h5" component="h3" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
+                    Статистика и отчеты
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
+                    Детальные отчеты и визуализация данных для принятия обоснованных решений
+                  </Typography>
+                  <StyledButton variant="contained" fullWidth>
+                    Подробнее
+                  </StyledButton>
+                </CardContent>
+              </StyledCard>
+            </AnimatedSection>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <AnimatedSection>
+              <StyledCard>
+                <CardContent sx={{ p: 4 }}>
+                  <IconWrapper>
+                    <SpeedIcon />
+                  </IconWrapper>
+                  <Typography variant="h5" component="h3" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
+                    Быстрый доступ
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
+                    Мгновенный доступ к актуальным данным через удобный интерфейс
+                  </Typography>
+                  <StyledButton variant="contained" fullWidth>
+                    Подробнее
+                  </StyledButton>
+                </CardContent>
+              </StyledCard>
+            </AnimatedSection>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <AnimatedSection>
+              <StyledCard>
+                <CardContent sx={{ p: 4 }}>
+                  <IconWrapper>
+                    <SecurityIcon />
+                  </IconWrapper>
+                  <Typography variant="h5" component="h3" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
+                    Безопасность данных
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
+                    Надежное хранение и защита конфиденциальной информации
+                  </Typography>
+                  <StyledButton variant="contained" fullWidth>
+                    Подробнее
+                  </StyledButton>
+                </CardContent>
+              </StyledCard>
+            </AnimatedSection>
+          </Grid>
+        </Grid>
       </Container>
     </>
   );
