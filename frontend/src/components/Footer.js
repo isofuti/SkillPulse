@@ -139,6 +139,7 @@ const Footer = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <FooterLink href="/">Главная</FooterLink>
                 <FooterLink href="/analysis">Анализ</FooterLink>
+                <FooterLink href="/pricing">Цены</FooterLink>
                 <FooterLink href="/statistics">Статистика</FooterLink>
                 <FooterLink href="/about">О нас</FooterLink>
               </Box>

@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Button, Container, Box, ThemeProvider, createTheme, Cs
 import styled from '@emotion/styled';
 import Home from './pages/Home';
 import Analysis from './pages/Analysis';
+import Pricing from './pages/Pricing';
 import Statistics from './pages/Statistics';
 import About from './pages/About';
 import logoImage from './assets/Logo.svg';
@@ -220,6 +221,13 @@ const Navigation = () => {
             </NavButton>
             <NavButton
               component={Link}
+              to="/pricing"
+              active={location.pathname === '/pricing' ? 1 : 0}
+            >
+              Цены
+            </NavButton>
+            <NavButton
+              component={Link}
               to="/statistics"
               active={location.pathname === '/statistics' ? 1 : 0}
             >
@@ -239,6 +247,7 @@ const Navigation = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/analysis" element={<Analysis />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/about" element={<About />} />
         </Routes>
