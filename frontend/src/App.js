@@ -115,6 +115,7 @@ function App() {
   const [eventSource, setEventSource] = useState(null);
   const [progress, setProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(null);
+  const [error, setError] = useState(null);
   const startTime = useRef(null);
 
   const handleSearch = () => {
@@ -126,33 +127,39 @@ function App() {
     setStats(null);
     setProgress(0);
     setTimeRemaining(null);
+    setError(null);
     startTime.current = Date.now();
 
     const regionsParam = selectedRegions.join(',');
     const newEventSource = new EventSource(`${API_BASE_URL}/api/vacancies/stream?query=${encodeURIComponent(query)}&areas=${regionsParam}`);
 
     newEventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setStats(data);
-      
-      // Обновляем прогресс
-      if (data.total_vacancies > 0) {
-        const currentProgress = (data.unique_vacancies / data.total_vacancies) * 100;
-        setProgress(currentProgress);
+      try {
+        const data = JSON.parse(event.data);
+        setStats(data);
         
-        // Рассчитываем оставшееся время
-        const elapsedTime = (Date.now() - startTime.current) / 1000; // в секундах
-        const estimatedTotalTime = elapsedTime / (currentProgress / 100);
-        const remainingTime = estimatedTotalTime - elapsedTime;
-        setTimeRemaining(Math.round(remainingTime));
+        if (data.total_vacancies > 0) {
+          const currentProgress = (data.unique_vacancies / data.total_vacancies) * 100;
+          setProgress(currentProgress);
+          
+          const elapsedTime = (Date.now() - startTime.current) / 1000;
+          const estimatedTotalTime = elapsedTime / (currentProgress / 100);
+          const remainingTime = estimatedTotalTime - elapsedTime;
+          setTimeRemaining(Math.round(remainingTime));
+        }
+      } catch (err) {
+        console.error('Error parsing event data:', err);
+        setError('Ошибка при обработке данных');
       }
     };
 
-    newEventSource.onerror = () => {
+    newEventSource.onerror = (err) => {
+      console.error('EventSource error:', err);
       newEventSource.close();
       setIsLoading(false);
       setProgress(100);
       setTimeRemaining(0);
+      setError('Ошибка соединения с сервером');
     };
 
     setEventSource(newEventSource);
@@ -320,6 +327,8 @@ function App() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     variant="outlined"
+                    error={!!error}
+                    helperText={error}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -383,7 +392,7 @@ function App() {
               </Paper>
             )}
 
-            {stats && (
+            {stats && !isLoading && (
               <>
                 <Paper sx={{ p: 3, mb: 3 }}>
                   <Typography variant="h6" gutterBottom>
