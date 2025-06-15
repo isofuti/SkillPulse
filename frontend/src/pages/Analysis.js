@@ -1,780 +1,490 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, Table, TableCell, TableRow, TableBody } from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import styled from '@emotion/styled';
 import cloud from 'd3-cloud';
-import * as d3 from 'd3';
-import { keyframes } from '@emotion/react';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import PieChartIcon from '@mui/icons-material/PieChart';
 
-const API_BASE_URL = 'http://localhost:8000';
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const float = keyframes`
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-`;
-
-const pulseAnimation = keyframes`
-  0% {
-    transform: scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.3;
-  }
-`;
-
-const graphAnimation = keyframes`
-  0% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 0.15;
-  }
-`;
-
-const squareAnimation = keyframes`
-  0% {
-    transform: rotate(0deg) scale(1);
-    opacity: 0.2;
-  }
-  50% {
-    transform: rotate(180deg) scale(1.1);
-    opacity: 0.4;
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-    opacity: 0.2;
-  }
-`;
-
-const lineAnimation = keyframes`
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  50% {
-    opacity: 0.3;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-`;
-
-const dotAnimation = keyframes`
-  0% {
-    transform: scale(0.8);
-    opacity: 0.2;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.4;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.2;
-  }
-`;
-
-const StyledTypography = styled(Typography)({
-  fontFamily: '"Inter", "SF Pro", sans-serif',
-  fontWeight: 400,
-});
-
-const StyledCard = styled(Card)({
-  background: 'rgba(44, 62, 80, 0.7)',
-  backdropFilter: 'blur(10px)',
-  borderRadius: '20px',
-  border: '1px solid rgba(15, 185, 193, 0.1)',
-  transition: 'all 0.3s ease',
+// Стилизованные компоненты
+const StyledCard = styled(Card)(({ theme }) => ({
+  backgroundColor: 'rgba(44, 62, 80, 0.9)',
+  color: '#fff',
   height: '100%',
-  '&:hover': {
-    transform: 'translateY(-5px)',
-    boxShadow: '0 8px 30px rgba(15, 185, 193, 0.2)',
-    border: '1px solid rgba(15, 185, 193, 0.3)',
-  },
-});
-
-const IconWrapper = styled(Box)({
-  width: '60px',
-  height: '60px',
-  borderRadius: '50%',
   display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: '20px',
-  background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
-  color: '#ECF0F1',
-  animation: `${float} 3s ease-in-out infinite`,
-  '& svg': {
-    fontSize: '30px',
-  },
-});
-
-const StyledTextField = styled(TextField)({
-  '& .MuiOutlinedInput-root': {
-    color: '#ECF0F1',
-    '& fieldset': {
-      borderColor: 'rgba(15, 185, 193, 0.3)',
-    },
-    '&:hover fieldset': {
-      borderColor: 'rgba(15, 185, 193, 0.5)',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#0fb9c1',
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: '#ECF0F1',
-  },
-  '& .MuiSelect-icon': {
-    color: '#ECF0F1',
-  },
-});
-
-const StyledButton = styled(Button)({
-  background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
-  color: '#ECF0F1',
-  padding: '10px 24px',
-  borderRadius: '30px',
-  textTransform: 'none',
-  fontSize: '16px',
-  fontWeight: 500,
-  transition: 'all 0.3s ease',
+  flexDirection: 'column',
+  transition: 'transform 0.2s ease-in-out',
   '&:hover': {
-    transform: 'scale(1.05)',
-    boxShadow: '0 0 20px rgba(15, 185, 193, 0.3)',
+    transform: 'translateY(-4px)',
   },
-});
+}));
 
-const AnimatedSection = styled(Box)({
-  animation: `${fadeIn} 0.8s ease-out`,
-  marginBottom: '40px',
-});
-
-const AnimatedBackground = styled(Box)({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  zIndex: -1,
-  overflow: 'hidden',
-  backgroundColor: '#000000',
-  '&::before': {
-    content: '""',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'radial-gradient(circle at center, rgba(241, 196, 15, 0.1) 0%, rgba(0, 0, 0, 0) 70%)',
-    animation: `${pulseAnimation} 4s ease-in-out infinite`,
-  },
-});
-
-const AnimatedGraph = styled(Box)({
-  position: 'fixed',
-  bottom: 0,
-  left: 0,
-  right: 0,
+const StyledTagCloud = styled(Box)({
+  width: '100%',
   height: '100%',
-  opacity: 0.15,
-  '&::before': {
-    content: '""',
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  '& .custom-tag-cloud': {
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, #F1C40F 0%, transparent 100%)',
-    clipPath: 'polygon(0 100%, 0 80%, 20% 60%, 40% 90%, 60% 40%, 80% 70%, 100% 30%, 100% 100%)',
-    animation: `${graphAnimation} 2s ease-out forwards`,
   },
 });
 
-const AnimatedSquare = styled(Box)({
-  position: 'fixed',
-  width: '100px',
-  height: '100px',
-  border: '2px solid rgba(241, 196, 15, 0.3)',
-  animation: `${squareAnimation} 10s linear infinite`,
-});
+// Компонент страницы анализа
+const Analysis = () => {
+  const [query, setQuery] = useState('');
+  const [selectedArea, setSelectedArea] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [areas, setAreas] = useState([]);
+  const [flattenedAreas, setFlattenedAreas] = useState([]);
+  const canvasRef = useRef(null);
 
-const AnimatedLine = styled(Box)({
-  position: 'fixed',
-  height: '1px',
-  width: '100%',
-  background: 'linear-gradient(90deg, transparent, #F1C40F, transparent)',
-  animation: `${lineAnimation} 3s linear infinite`,
-});
+  // Список основных регионов
+  const mainAreas = [
+    { id: "1", name: "Москва" },
+    { id: "2", name: "Санкт-Петербург" },
+    { id: "3", name: "Новосибирск" },
+    { id: "4", name: "Екатеринбург" },
+    { id: "66", name: "Нижний Новгород" },
+    { id: "78", name: "Казань" },
+    { id: "72", name: "Тюмень" },
+    { id: "54", name: "Красноярск" },
+    { id: "99", name: "Воронеж" },
+    { id: "88", name: "Ростов-на-Дону" }
+  ];
 
-const AnimatedDot = styled(Box)({
-  position: 'fixed',
-  width: '8px',
-  height: '8px',
-  borderRadius: '50%',
-  backgroundColor: '#F1C40F',
-  animation: `${dotAnimation} 2s ease-in-out infinite`,
-});
+  // Функция для "сплющивания" иерархии регионов
+  const flattenAreas = (areas) => {
+    // Находим Россию (id: "113")
+    const russia = areas.find(area => area.id === "113");
+    if (!russia) return [];
 
-const WordCloud = ({ words }) => {
-  const containerRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    if (!words || !containerRef.current) return;
-
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        setDimensions({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight
+    let result = [];
+    // Добавляем только регионы России
+    russia.areas.forEach(area => {
+      result.push({
+        id: area.id,
+        name: area.name
+      });
+      // Добавляем подрегионы, если они есть
+      if (area.areas && area.areas.length > 0) {
+        area.areas.forEach(subArea => {
+          result.push({
+            id: subArea.id,
+            name: `${area.name} - ${subArea.name}`
+          });
         });
+      }
+    });
+    return result;
+  };
+
+  // Загрузка списка регионов при монтировании компонента
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/areas');
+        if (!response.ok) {
+          throw new Error('Ошибка при загрузке регионов');
+        }
+        const data = await response.json();
+        setAreas(data);
+        // Создаем плоский список регионов с полными путями
+        const flattened = flattenAreas(data);
+        setFlattenedAreas(flattened);
+      } catch (error) {
+        console.error('Ошибка при загрузке регионов:', error);
+        setError('Не удалось загрузить список регионов');
       }
     };
 
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
+    fetchAreas();
+  }, []);
 
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, [words]);
-
-  useEffect(() => {
-    if (!words || !dimensions.width || !dimensions.height) return;
-
-    // Преобразуем словарь в массив объектов
-    const wordData = Object.entries(words || {}).map(([text, value]) => ({
-      text,
-      value: Math.max(value * 2, 10) // Минимальный размер слова
-    }));
-
-    if (wordData.length === 0) return;
-
-    const layout = cloud()
-      .size([dimensions.width, dimensions.height])
-      .words(wordData)
-      .padding(5)
-      .rotate(() => ~~(Math.random() * 2) * 90)
-      .font('Inter')
-      .fontSize(d => d.value)
-      .on('end', draw);
-
-    layout.start();
-
-    function draw(words) {
-      d3.select(containerRef.current)
-        .selectAll('*')
-        .remove();
-
-      d3.select(containerRef.current)
-        .append('svg')
-        .attr('width', layout.size()[0])
-        .attr('height', layout.size()[1])
-        .append('g')
-        .attr('transform', `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)
-        .selectAll('text')
-        .data(words)
-        .enter()
-        .append('text')
-        .style('font-size', d => `${d.size}px`)
-        .style('font-family', 'Inter')
-        .style('fill', () => `hsl(${Math.random() * 360}, 70%, 50%)`)
-        .attr('text-anchor', 'middle')
-        .attr('transform', d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
-        .text(d => d.text);
-    }
-  }, [words, dimensions]);
-
-  if (!words || Object.keys(words).length === 0) {
-    return (
-      <Box
-        sx={{
-          width: '100%',
-          height: '300px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          p: 2
-        }}
-      >
-        <Typography variant="body1" color="text.secondary">
-          Нет данных для отображения
-        </Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box
-      ref={containerRef}
-      sx={{
-        width: '100%',
-        height: '300px',
-        position: 'relative',
-        '& svg': {
-          width: '100%',
-          height: '100%'
-        }
-      }}
-    />
-  );
-};
-
-const formatSalary = (salary) => {
-  if (!salary) return 'Не указана';
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: 'RUB',
-    maximumFractionDigits: 0
-  }).format(salary);
-};
-
-const formatTimeRemaining = (seconds) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
-
-const prepareSalaryData = (distribution) => {
-  if (!distribution) return [];
-  
-  return Object.entries(distribution)
-    .map(([range, count]) => ({
-      label: range,
-      count: count
-    }))
-    .sort((a, b) => {
-      const getMinSalary = (range) => parseInt(range.split('-')[0]);
-      return getMinSalary(a.label) - getMinSalary(b.label);
-    });
-};
-
-const regions = [
-  { id: 1, name: 'Москва' },
-  { id: 2, name: 'Санкт-Петербург' },
-  { id: 66, name: 'Екатеринбург' },
-  { id: 53, name: 'Новосибирск' },
-  { id: 3, name: 'Нижний Новгород' },
-  { id: 72, name: 'Тюмень' },
-  { id: 88, name: 'Краснодар' },
-  { id: 99, name: 'Казань' },
-  { id: 76, name: 'Ростов-на-Дону' },
-  { id: 68, name: 'Воронеж' }
-];
-
-const industries = [
-  'IT и разработка',
-  'Маркетинг',
-  'Продажи',
-  'Финансы',
-  'HR',
-];
-
-// Словарь ключевых слов для отраслей
-const industryKeywords = {
-  'IT и разработка': ['разработчик', 'программист', 'python', 'frontend', 'backend', 'java', '1C', 'devops', 'qa', 'тестировщик'],
-  'Маркетинг': ['маркетолог', 'SMM', 'контент', 'реклама', 'таргетолог', 'SEO', 'PR'],
-  'Продажи': ['менеджер по продажам', 'торговый представитель', 'аккаунт-менеджер', 'sales', 'b2b', 'b2c'],
-  'Финансы': ['бухгалтер', 'финансист', 'аудитор', 'экономист', 'аналитик', 'финансовый менеджер'],
-  'HR': ['HR', 'рекрутер', 'кадровик', 'специалист по персоналу', 'HR generalist', 'HR бизнес-партнер']
-};
-
-const Analysis = () => {
-  const [selectedRegion, setSelectedRegion] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(null);
-  const [eventSource, setEventSource] = useState(null);
-  const [customQuery, setCustomQuery] = useState('');
-  const [searchStatus, setSearchStatus] = useState('');
-
-  const handleSearch = async () => {
-    // Проверяем, что выбран регион
-    if (!selectedRegion) {
-      setError('Пожалуйста, выберите регион');
-      return;
-    }
-
-    // Проверяем, что либо введен запрос, либо выбрана отрасль
-    if (!customQuery.trim() && !selectedIndustry) {
-      setError('Пожалуйста, либо введите поисковый запрос, либо выберите отрасль');
-      return;
-    }
-
-    setIsLoading(true);
+  // Обработчик отправки формы
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     setError(null);
-    setProgress(0);
     setStats(null);
-    setSearchStatus('Начинаем поиск...');
 
     try {
-      const regionId = regions.find(r => r.name === selectedRegion)?.id;
-      if (!regionId) {
-        throw new Error('Регион не найден');
+      // Находим ID региона по имени
+      const area = mainAreas.find(a => a.name.toLowerCase() === selectedArea.toLowerCase());
+      if (!area) {
+        throw new Error('Регион не найден. Пожалуйста, выберите регион из списка.');
       }
 
-      // Определяем список поисковых запросов
-      let queries = [];
-      if (customQuery.trim()) {
-        queries = [customQuery.trim()];
-        setSearchStatus(`Ищем вакансии по запросу: "${customQuery.trim()}"`);
-      } else {
-        queries = industryKeywords[selectedIndustry] || [selectedIndustry];
-        setSearchStatus(`Ищем вакансии по ключевым словам отрасли: ${selectedIndustry}`);
+      const response = await fetch('http://localhost:8000/api/vacancies/stats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          areas: [area.id],
+          per_page: 100,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при получении данных');
       }
 
-      let aggregatedStats = null;
-      let totalQueries = queries.length;
-      let completedQueries = 0;
-
-      for (let i = 0; i < queries.length; i++) {
-        const query = queries[i];
-        setSearchStatus(`Поиск по запросу "${query}" (${i + 1}/${queries.length})...`);
-        
-        const response = await fetch(`${API_BASE_URL}/api/vacancies/stats`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query,
-            areas: [regionId],
-            per_page: 100,
-            page: 1
-          }),
-        });
-
-        if (!response.ok) {
-          console.error(`Ошибка при поиске по запросу "${query}":`, response.status);
-          continue;
-        }
-
-        const data = await response.json();
-        console.log('Получены данные:', data);
-
-        completedQueries++;
-        setProgress((completedQueries / totalQueries) * 100);
-
-        if (!aggregatedStats) {
-          aggregatedStats = data;
-        } else {
-          // Агрегируем результаты
-          aggregatedStats.total_vacancies += data.total_vacancies;
-          aggregatedStats.unique_vacancies += data.unique_vacancies;
-          aggregatedStats.vacancies_with_salary += data.vacancies_with_salary;
-          aggregatedStats.vacancies_without_salary += data.vacancies_without_salary;
-          
-          if (data.average_salary && aggregatedStats.average_salary) {
-            aggregatedStats.average_salary = Math.round((aggregatedStats.average_salary + data.average_salary) / 2);
-          }
-          if (data.median_salary && aggregatedStats.median_salary) {
-            aggregatedStats.median_salary = Math.round((aggregatedStats.median_salary + data.median_salary) / 2);
-          }
-          
-          // Объединяем word_cloud
-          if (data.word_cloud && aggregatedStats.word_cloud) {
-            for (const [word, count] of Object.entries(data.word_cloud)) {
-              aggregatedStats.word_cloud[word] = (aggregatedStats.word_cloud[word] || 0) + count;
-            }
-          }
-          
-          // Объединяем salary_distribution
-          if (data.salary_distribution && aggregatedStats.salary_distribution) {
-            for (const [range, count] of Object.entries(data.salary_distribution)) {
-              aggregatedStats.salary_distribution[range] = (aggregatedStats.salary_distribution[range] || 0) + count;
-            }
-          }
-        }
-      }
-
-      if (!aggregatedStats || aggregatedStats.total_vacancies === 0) {
-        setError('По вашему запросу не найдено вакансий. Попробуйте изменить параметры поиска.');
-        setSearchStatus('Поиск завершен. Вакансии не найдены.');
-      } else {
-        console.log('Устанавливаем статистику:', aggregatedStats);
-        setStats(aggregatedStats);
-        setSearchStatus(`Найдено ${aggregatedStats.total_vacancies} вакансий`);
-      }
-    } catch (err) {
-      console.error('Ошибка при выполнении анализа:', err);
-      setError('Произошла ошибка при выполнении анализа: ' + err.message);
-      setSearchStatus('Произошла ошибка при поиске');
+      const data = await response.json();
+      console.log('Полученные данные:', data);
+      setStats(data);
+    } catch (error) {
+      console.error('Ошибка:', error);
+      setError(error.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (eventSource) {
-        eventSource.close();
-      }
+  // Форматирование зарплаты
+  const formatSalary = (salary) => {
+    if (!salary) return 'Не указана';
+    
+    let amount = null;
+    if (salary.from !== null && salary.from !== undefined) {
+      amount = salary.from;
+    } else if (salary.to !== null && salary.to !== undefined) {
+      amount = salary.to;
+    }
+    
+    if (amount === null) return 'Не указана';
+    
+    const currency = salary.currency || 'RUR';
+    const formattedAmount = new Intl.NumberFormat('ru-RU').format(amount);
+    return `${formattedAmount} ${currency}`;
+  };
+
+  // Форматирование даты
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Не указана';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  // Подготовка данных для графика зарплат
+  const salaryChartData = React.useMemo(() => {
+    if (!stats?.salary_ranges) {
+      console.log('Нет данных для графика');
+      return null;
+    }
+
+    console.log('Создаем данные для графика из:', stats.salary_ranges);
+    
+    const data = {
+      labels: ['0-50k', '50k-100k', '100k-150k', '150k-200k', '200k-250k', '250k-300k', '300k+'],
+      datasets: [
+        {
+          label: 'Количество вакансий',
+          data: [
+            stats.salary_ranges['0-50000'] || 0,
+            stats.salary_ranges['50000-100000'] || 0,
+            stats.salary_ranges['100000-150000'] || 0,
+            stats.salary_ranges['150000-200000'] || 0,
+            stats.salary_ranges['200000-250000'] || 0,
+            stats.salary_ranges['250000-300000'] || 0,
+            stats.salary_ranges['300000+'] || 0,
+          ],
+          backgroundColor: 'rgba(15, 185, 193, 0.6)',
+          borderColor: 'rgba(15, 185, 193, 1)',
+          borderWidth: 1,
+        },
+      ],
     };
-  }, [eventSource]);
+
+    console.log('Данные для графика:', data);
+    return data;
+  }, [stats]);
+
+  // Подготовка данных для облака слов
+  const wordCloudData = React.useMemo(() => {
+    if (!stats?.word_cloud) {
+      console.log('Нет данных для облака слов');
+      return [];
+    }
+
+    console.log('Создаем данные для облака слов из:', stats.word_cloud);
+
+    return Object.entries(stats.word_cloud)
+      .filter(([text]) => !text.match(/^\d+$/)) // Исключаем числовые значения
+      .filter(([text]) => text.length > 2) // Исключаем короткие слова
+      .map(([text, value], index) => ({
+        key: `${text}-${index}`,
+        text,
+        value: value * 10,
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 50);
+  }, [stats]);
+
+  // Рендеринг графика зарплат
+  const renderSalaryChart = () => {
+    if (!salaryChartData) {
+      return (
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="body1" color="text.secondary">
+            Нет данных для отображения графика
+          </Typography>
+        </Box>
+      );
+    }
+
+    const data = salaryChartData.datasets[0].data.map((value, index) => ({
+      range: salaryChartData.labels[index],
+      value: value
+    }));
+
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="range" />
+          <YAxis />
+          <RechartsTooltip />
+          <Bar dataKey="value" fill="#0FB9C1" />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
+
+  // Рендеринг облака слов
+  const renderWordCloud = () => {
+    if (!wordCloudData.length) {
+      return (
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="body1" color="text.secondary">
+            Нет данных для отображения облака слов
+          </Typography>
+        </Box>
+      );
+    }
+
+    return (
+      <StyledTagCloud>
+        <canvas ref={canvasRef} />
+      </StyledTagCloud>
+    );
+  };
+
+  // Рендеринг списка вакансий
+  const renderVacanciesList = () => {
+    if (!stats?.vacancies?.length) {
+      return (
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="body1" color="text.secondary">
+            Нет данных о вакансиях
+          </Typography>
+        </Box>
+      );
+    }
+
+    return (
+      <List>
+        {stats.vacancies.map((vacancy) => (
+          <React.Fragment key={vacancy.id}>
+            <ListItem>
+              <ListItemText
+                primary={
+                  <Link href={vacancy.url} target="_blank" rel="noopener noreferrer">
+                    {vacancy.name}
+                  </Link>
+                }
+                secondary={
+                  <>
+                    <Typography component="span" variant="body2" color="text.primary">
+                      {formatSalary(vacancy.salary)}
+                    </Typography>
+                    {` — ${vacancy.employer} — ${vacancy.area}`}
+                  </>
+                }
+              />
+            </ListItem>
+            <Divider />
+          </React.Fragment>
+        ))}
+      </List>
+    );
+  };
 
   return (
-    <>
-      <AnimatedBackground>
-        <AnimatedGraph />
-        <AnimatedSquare style={{ top: '10%', left: '10%' }} />
-        <AnimatedSquare style={{ top: '20%', right: '15%' }} />
-        <AnimatedSquare style={{ bottom: '15%', left: '20%' }} />
-        <AnimatedSquare style={{ bottom: '25%', right: '25%' }} />
-        <AnimatedLine style={{ top: '30%' }} />
-        <AnimatedLine style={{ top: '60%' }} />
-        <AnimatedDot style={{ top: '40%', left: '30%' }} />
-        <AnimatedDot style={{ top: '70%', right: '40%' }} />
-        <AnimatedDot style={{ bottom: '20%', left: '50%' }} />
-      </AnimatedBackground>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Grid container spacing={4}>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Анализ вакансий
+      </Typography>
+      
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Поисковый запрос"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Регион"
+                value={selectedArea}
+                onChange={(e) => setSelectedArea(e.target.value)}
+                required
+                helperText="Доступные регионы: Москва, Санкт-Петербург, Новосибирск, Екатеринбург, Нижний Новгород, Казань, Тюмень, Красноярск, Воронеж, Ростов-на-Дону"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                fullWidth
+              >
+                {loading ? <CircularProgress size={24} /> : 'Анализировать'}
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </Paper>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {loading && (
+        <Box sx={{ width: '100%', mb: 4 }}>
+          <LinearProgress />
+        </Box>
+      )}
+
+      {stats && (
+        <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <AnimatedSection>
-              <StyledCard>
-                <CardContent sx={{ p: 4 }}>
-                  <IconWrapper>
-                    <TrendingUpIcon />
-                  </IconWrapper>
-                  <Typography variant="h5" component="h3" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
-                    Выберите параметры анализа
-                  </Typography>
-                  <Box sx={{ mt: 3 }}>
-                    <StyledTextField
-                      select
-                      required
-                      fullWidth
-                      label="Регион"
-                      value={selectedRegion}
-                      onChange={(e) => setSelectedRegion(e.target.value)}
-                      sx={{ mb: 3 }}
-                    >
-                      {regions.map((region) => (
-                        <MenuItem key={region.id} value={region.name}>
-                          {region.name}
-                        </MenuItem>
-                      ))}
-                    </StyledTextField>
-                    <StyledTextField
-                      select
-                      fullWidth
-                      label="Отрасль (необязательно)"
-                      value={selectedIndustry}
-                      onChange={(e) => setSelectedIndustry(e.target.value)}
-                      sx={{ mb: 3 }}
-                    >
-                      <MenuItem value="">
-                        <em>Не выбрано</em>
-                      </MenuItem>
-                      {industries.map((industry) => (
-                        <MenuItem key={industry} value={industry}>
-                          {industry}
-                        </MenuItem>
-                      ))}
-                    </StyledTextField>
-                    <StyledTextField
-                      label="Поисковый запрос (необязательно)"
-                      value={customQuery}
-                      onChange={e => setCustomQuery(e.target.value)}
-                      fullWidth
-                      margin="normal"
-                      sx={{ mb: 3 }}
-                      helperText="Введите запрос или выберите отрасль"
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ color: '#fff', fontWeight: 600 }}>
+                  Общая статистика
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemText 
+                      primary="Всего вакансий" 
+                      secondary={stats.total_vacancies}
+                      primaryTypographyProps={{ color: '#fff' }}
+                      secondaryTypographyProps={{ color: '#0FB9C1' }}
                     />
-                    <StyledButton 
-                      variant="contained" 
-                      fullWidth 
-                      onClick={handleSearch}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Поиск...' : 'Начать анализ'}
-                    </StyledButton>
-                  </Box>
-                </CardContent>
-              </StyledCard>
-            </AnimatedSection>
+                  </ListItem>
+                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
+                  <ListItem>
+                    <ListItemText 
+                      primary="Уникальных вакансий" 
+                      secondary={stats.unique_vacancies}
+                      primaryTypographyProps={{ color: '#fff' }}
+                      secondaryTypographyProps={{ color: '#0FB9C1' }}
+                    />
+                  </ListItem>
+                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
+                  <ListItem>
+                    <ListItemText 
+                      primary="Вакансий с зарплатой" 
+                      secondary={stats.vacancies_with_salary}
+                      primaryTypographyProps={{ color: '#fff' }}
+                      secondaryTypographyProps={{ color: '#0FB9C1' }}
+                    />
+                  </ListItem>
+                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
+                  <ListItem>
+                    <ListItemText 
+                      primary="Вакансий без зарплаты" 
+                      secondary={stats.vacancies_without_salary}
+                      primaryTypographyProps={{ color: '#fff' }}
+                      secondaryTypographyProps={{ color: '#0FB9C1' }}
+                    />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </StyledCard>
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <AnimatedSection>
-              <StyledCard>
-                <CardContent sx={{ p: 4 }}>
-                  <IconWrapper>
-                    <AssessmentIcon />
-                  </IconWrapper>
-                  <Typography variant="h5" component="h3" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
-                    Результаты анализа
-                  </Typography>
-                  {isLoading && (
-                    <Box sx={{ mt: 3 }}>
-                      <Typography variant="body1" gutterBottom>
-                        {searchStatus}
-                      </Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={progress || 0} 
-                        sx={{ 
-                          height: 10, 
-                          borderRadius: 5,
-                          backgroundColor: 'rgba(15, 185, 193, 0.1)',
-                          '& .MuiLinearProgress-bar': {
-                            backgroundColor: '#0fb9c1',
-                            transition: 'transform 0.4s linear',
-                          }
-                        }} 
-                      />
-                    </Box>
-                  )}
-                  {error && (
-                    <Alert severity="error" sx={{ mt: 3 }}>
-                      {error}
-                    </Alert>
-                  )}
-                  {stats && (
-                    <Box sx={{ mt: 3 }}>
-                      <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1' }}>
-                        Общая статистика
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <Typography variant="body1" sx={{ color: '#ECF0F1' }}>
-                            Всего вакансий: {stats.total_vacancies}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="body1" sx={{ color: '#ECF0F1' }}>
-                            Уникальных: {stats.unique_vacancies}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="body1" sx={{ color: '#ECF0F1' }}>
-                            С зарплатой: {stats.vacancies_with_salary}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="body1" sx={{ color: '#ECF0F1' }}>
-                            Без зарплаты: {stats.vacancies_without_salary}
-                          </Typography>
-                        </Grid>
-                        {stats.average_salary > 0 && (
-                          <Grid item xs={6}>
-                            <Typography variant="body1" sx={{ color: '#ECF0F1' }}>
-                              Средняя зарплата: {stats.average_salary.toLocaleString()} ₽
-                            </Typography>
-                          </Grid>
-                        )}
-                        {stats.median_salary > 0 && (
-                          <Grid item xs={6}>
-                            <Typography variant="body1" sx={{ color: '#ECF0F1' }}>
-                              Медианная зарплата: {stats.median_salary.toLocaleString()} ₽
-                            </Typography>
-                          </Grid>
-                        )}
-                      </Grid>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ color: '#fff', fontWeight: 600 }}>
+                  Зарплаты
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemText 
+                      primary="Средняя зарплата" 
+                      secondary={`${new Intl.NumberFormat('ru-RU').format(stats.average_salary)} ₽`}
+                      primaryTypographyProps={{ color: '#fff' }}
+                      secondaryTypographyProps={{ color: '#0FB9C1' }}
+                    />
+                  </ListItem>
+                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
+                  <ListItem>
+                    <ListItemText 
+                      primary="Медианная зарплата" 
+                      secondary={`${new Intl.NumberFormat('ru-RU').format(stats.median_salary)} ₽`}
+                      primaryTypographyProps={{ color: '#fff' }}
+                      secondaryTypographyProps={{ color: '#0FB9C1' }}
+                    />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </StyledCard>
+          </Grid>
 
-                      {Object.keys(stats.area_stats).length > 0 && (
-                        <Box sx={{ mt: 4 }}>
-                          <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1' }}>
-                            Статистика по регионам
-                          </Typography>
-                          {Object.entries(stats.area_stats).map(([area, data]) => (
-                            <Box key={area} sx={{ mb: 2 }}>
-                              <Typography variant="subtitle1" sx={{ color: '#ECF0F1' }}>
-                                {regions.find(r => r.id === parseInt(area.split('_')[1]))?.name || area}
-                              </Typography>
-                              <Grid container spacing={2}>
-                                <Grid item xs={6}>
-                                  <Typography variant="body2" sx={{ color: '#ECF0F1' }}>
-                                    Всего: {data.total}
-                                  </Typography>
-                                </Grid>
-                                <Grid item xs={6}>
-                                  <Typography variant="body2" sx={{ color: '#ECF0F1' }}>
-                                    С зарплатой: {data.with_salary}
-                                  </Typography>
-                                </Grid>
-                                {data.average_salary && (
-                                  <Grid item xs={6}>
-                                    <Typography variant="body2" sx={{ color: '#ECF0F1' }}>
-                                      Средняя: {data.average_salary.toLocaleString()} ₽
-                                    </Typography>
-                                  </Grid>
-                                )}
-                              </Grid>
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Распределение зарплат
+                </Typography>
+                {renderSalaryChart()}
+              </CardContent>
+            </Card>
+          </Grid>
 
-                      {Object.keys(stats.word_cloud).length > 0 && (
-                        <Box sx={{ mt: 4 }}>
-                          <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1' }}>
-                            Популярные навыки
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {Object.entries(stats.word_cloud)
-                              .sort(([,a], [,b]) => b - a)
-                              .slice(0, 20)
-                              .map(([word, count]) => (
-                                <Chip
-                                  key={word}
-                                  label={`${word} (${count})`}
-                                  sx={{
-                                    backgroundColor: 'rgba(15, 185, 193, 0.1)',
-                                    color: '#ECF0F1',
-                                    '&:hover': {
-                                      backgroundColor: 'rgba(15, 185, 193, 0.2)',
-                                    }
-                                  }}
-                                />
-                              ))}
-                          </Box>
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-                </CardContent>
-              </StyledCard>
-            </AnimatedSection>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Облако навыков
+                </Typography>
+                {renderWordCloud()}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Список вакансий
+                </Typography>
+                {renderVacanciesList()}
+              </CardContent>
+            </StyledCard>
           </Grid>
         </Grid>
-      </Container>
-    </>
+      )}
+    </Container>
   );
 };
 
-export default Analysis; 
+export default Analysis;

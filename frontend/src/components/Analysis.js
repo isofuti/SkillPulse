@@ -62,8 +62,10 @@ const Analysis = () => {
       }
 
       const data = await response.json();
+      console.log('Полученные данные:', data);
       setStats(data);
     } catch (err) {
+      console.error('Ошибка:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -222,6 +224,7 @@ const Analysis = () => {
                   <Card>
                     <Card.Body>
                       <h4>Распределение зарплат</h4>
+                      {console.log('Данные для графика:', salaryChartData)}
                       {salaryChartData && (
                         <Bar data={salaryChartData} options={salaryChartOptions} />
                       )}
@@ -240,7 +243,8 @@ const Analysis = () => {
 
               {showVacancies && (
                 <ListGroup>
-                  {stats.vacancies.map(vacancy => (
+                  {console.log('Список вакансий:', stats.vacancies)}
+                  {stats.vacancies && stats.vacancies.map(vacancy => (
                     <ListGroup.Item key={vacancy.id}>
                       <h5>{vacancy.name}</h5>
                       <p className="mb-1">
