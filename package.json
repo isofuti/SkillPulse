@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "jspdf-autotable": "^5.0.2",
+    "jspdf-font": "^1.0.7",
+    "pdfmake": "^0.2.20"
+  }
+}

@@ -1,12 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, Table, TableCell, TableRow, TableBody } from '@mui/material';
+import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, Table, TableCell, TableRow, TableBody, IconButton, Tooltip, Dialog, DialogContent, DialogTitle, ListItemIcon } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 import cloud from 'd3-cloud';
 import WordCloud from '../components/WordCloud';
 import VacancyList from '../components/VacancyList';
+import DownloadIcon from '@mui/icons-material/Download';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import html2canvas from 'html2canvas';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { styled as muiStyled } from '@mui/material/styles';
+import 'jspdf-font';
+
+// Инициализация pdfmake с шрифтами
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
 // Анимации
 const gradientAnimation = keyframes`
@@ -142,6 +152,13 @@ const Analysis = () => {
   const [areas, setAreas] = useState([]);
   const [flattenedAreas, setFlattenedAreas] = useState([]);
   const canvasRef = useRef(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState({
+    isGenerating: false,
+    currentStep: '',
+    steps: [],
+    error: null
+  });
 
   // Список основных регионов
   const mainAreas = [
@@ -368,6 +385,225 @@ const Analysis = () => {
     );
   };
 
+  // Функция для скачивания отчета
+  const downloadReport = async () => {
+    if (!stats) return;
+    
+    setPdfProgress({
+      isGenerating: true,
+      currentStep: 'Подготовка документа...',
+      steps: [],
+      error: null
+    });
+
+    try {
+      // Инициализация PDF
+      setPdfProgress(prev => ({
+        ...prev,
+        currentStep: 'Инициализация PDF...',
+        steps: [...prev.steps, { text: 'Подготовка документа', completed: true }]
+      }));
+
+      // Заголовок и основная информация
+      setPdfProgress(prev => ({
+        ...prev,
+        currentStep: 'Добавление основной информации...',
+        steps: [...prev.steps, { text: 'Инициализация PDF', completed: true }]
+      }));
+
+      // График распределения зарплат
+      setPdfProgress(prev => ({
+        ...prev,
+        currentStep: 'Генерация графика зарплат...',
+        steps: [...prev.steps, { text: 'Добавление основной информации', completed: true }]
+      }));
+
+      let salaryChartImage = null;
+      try {
+        const chartElement = document.querySelector('.salary-chart');
+        if (chartElement) {
+          const canvas = await html2canvas(chartElement, {
+            scale: 1,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#2C3E50'
+          });
+          salaryChartImage = canvas.toDataURL('image/jpeg', 0.8);
+        }
+      } catch (chartError) {
+        console.error('Ошибка при генерации графика:', chartError);
+      }
+
+      // Облако слов
+      setPdfProgress(prev => ({
+        ...prev,
+        currentStep: 'Генерация облака слов...',
+        steps: [...prev.steps, { text: 'Генерация графика зарплат', completed: true }]
+      }));
+
+      let wordCloudImage = null;
+      try {
+        const wordCloudElement = document.querySelector('.word-cloud');
+        if (wordCloudElement) {
+          const canvas = await html2canvas(wordCloudElement, {
+            scale: 1,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#2C3E50'
+          });
+          wordCloudImage = canvas.toDataURL('image/jpeg', 0.8);
+        }
+      } catch (wordCloudError) {
+        console.error('Ошибка при генерации облака слов:', wordCloudError);
+      }
+
+      // Список вакансий
+      setPdfProgress(prev => ({
+        ...prev,
+        currentStep: 'Добавление списка вакансий...',
+        steps: [...prev.steps, { text: 'Генерация облака слов', completed: true }]
+      }));
+
+      // Ограничиваем количество вакансий для оптимизации
+      const maxVacancies = 30;
+      const vacanciesToShow = stats.vacancies.slice(0, maxVacancies);
+
+      // Создаем документ
+      const docDefinition = {
+        content: [
+          {
+            text: 'Анализ рынка вакансий',
+            style: 'header',
+            alignment: 'center'
+          },
+          {
+            text: '\n'
+          },
+          {
+            table: {
+              widths: ['*', '*'],
+              body: [
+                ['Параметр', 'Значение'],
+                ['Поисковый запрос', query],
+                ['Регион', selectedArea]
+              ]
+            },
+            layout: 'lightHorizontalLines'
+          },
+          {
+            text: '\n'
+          },
+          {
+            table: {
+              widths: ['*', '*'],
+              body: [
+                ['Показатель', 'Значение'],
+                ['Всего вакансий', stats.total_vacancies.toString()],
+                ['Средняя зарплата', `${stats.average_salary.toLocaleString()} ₽`],
+                ['Медианная зарплата', `${stats.median_salary.toLocaleString()} ₽`]
+              ]
+            },
+            layout: 'lightHorizontalLines'
+          },
+          {
+            text: '\n'
+          }
+        ],
+        styles: {
+          header: {
+            fontSize: 24,
+            bold: true,
+            color: '#2C3E50',
+            margin: [0, 0, 0, 10]
+          },
+          subheader: {
+            fontSize: 16,
+            bold: true,
+            color: '#0fb9c1',
+            margin: [0, 10, 0, 5]
+          }
+        },
+        defaultStyle: {
+          fontSize: 12,
+          color: '#2C3E50'
+        }
+      };
+
+      // Добавляем графики, если они есть
+      if (salaryChartImage) {
+        docDefinition.content.push(
+          { text: 'Распределение зарплат', style: 'subheader' },
+          { image: salaryChartImage, width: 500 },
+          { text: '\n' }
+        );
+      }
+
+      if (wordCloudImage) {
+        docDefinition.content.push(
+          { text: 'Облако слов', style: 'subheader' },
+          { image: wordCloudImage, width: 500 },
+          { text: '\n' }
+        );
+      }
+
+      // Добавляем список вакансий
+      const vacanciesTable = {
+        table: {
+          headerRows: 1,
+          widths: [30, '*', '*', 100],
+          body: [
+            ['№', 'Название', 'Компания', 'Зарплата'],
+            ...vacanciesToShow.map((vacancy, index) => [
+              (index + 1).toString(),
+              vacancy.name,
+              vacancy.employer,
+              vacancy.salary ? formatSalary(vacancy.salary) : 'Не указана'
+            ])
+          ]
+        },
+        layout: 'lightHorizontalLines'
+      };
+
+      docDefinition.content.push(
+        { text: 'Список вакансий', style: 'subheader' },
+        vacanciesTable
+      );
+
+      // Финальный шаг
+      setPdfProgress(prev => ({
+        ...prev,
+        currentStep: 'Сохранение документа...',
+        steps: [...prev.steps, { text: 'Добавление списка вакансий', completed: true }]
+      }));
+
+      // Создаем и скачиваем PDF
+      pdfMake.createPdf(docDefinition).download(`анализ_вакансий_${query}_${selectedArea}.pdf`);
+
+      setPdfProgress(prev => ({
+        ...prev,
+        currentStep: 'Готово!',
+        steps: [...prev.steps, { text: 'Сохранение документа', completed: true }]
+      }));
+
+      // Закрываем диалог через 2 секунды после успешного завершения
+      setTimeout(() => {
+        setPdfProgress({
+          isGenerating: false,
+          currentStep: '',
+          steps: [],
+          error: null
+        });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Ошибка при генерации PDF:', error);
+      setPdfProgress(prev => ({
+        ...prev,
+        error: `Произошла ошибка при генерации PDF: ${error.message}. Пожалуйста, попробуйте еще раз.`
+      }));
+    }
+  };
+
   return (
     <>
       <AnimatedBackground>
@@ -382,19 +618,35 @@ const Analysis = () => {
         <AnimatedDot style={{ bottom: '20%', left: '50%' }} />
       </AnimatedBackground>
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4, position: 'relative', zIndex: 1 }}>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
-          sx={{ 
-            color: '#ECF0F1',
-            fontWeight: 'bold',
-            mb: 4,
-            textAlign: 'center'
-          }}
-        >
-          Анализ рынка вакансий
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              color: '#ECF0F1',
+              fontWeight: 'bold',
+              textAlign: 'center'
+            }}
+          >
+            Анализ рынка вакансий
+          </Typography>
+          {stats && (
+            <Tooltip title="Скачать отчет">
+              <IconButton 
+                onClick={downloadReport}
+                disabled={pdfProgress.isGenerating}
+                sx={{ 
+                  color: '#0fb9c1',
+                  '&:hover': {
+                    color: '#0da8af',
+                  }
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
 
         {/* Форма поиска */}
         <SearchPaper elevation={3} sx={{ mb: 3 }}>
@@ -499,7 +751,7 @@ const Analysis = () => {
                 <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 'bold' }}>
                   Распределение зарплат
                 </Typography>
-                <Box sx={{ height: 300 }}>
+                <Box sx={{ height: 300 }} className="salary-chart">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={salaryChartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ECF0F1" opacity={0.3} />
@@ -535,12 +787,71 @@ const Analysis = () => {
             </Grid>
 
             {/* Облако слов */}
-            {renderWordCloud()}
+            <Grid item xs={12} className="word-cloud">
+              <WordCloud words={stats?.word_cloud} />
+            </Grid>
 
             {/* Список вакансий */}
             {renderVacanciesList()}
           </Grid>
         )}
+
+        {/* Диалог прогресса */}
+        <Dialog
+          open={pdfProgress.isGenerating}
+          PaperProps={{
+            sx: {
+              backgroundColor: '#2C3E50',
+              color: '#ECF0F1',
+              padding: 2,
+              minWidth: '400px'
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: '#ECF0F1', textAlign: 'center' }}>
+            Генерация отчета
+          </DialogTitle>
+          <DialogContent>
+            {pdfProgress.error ? (
+              <Box sx={{ textAlign: 'center', color: '#F1C40F' }}>
+                <ErrorIcon sx={{ fontSize: 40, mb: 2 }} />
+                <Typography>{pdfProgress.error}</Typography>
+                <Button 
+                  variant="contained" 
+                  onClick={() => setPdfProgress({
+                    isGenerating: false,
+                    currentStep: '',
+                    steps: [],
+                    error: null
+                  })}
+                  sx={{ mt: 2, bgcolor: '#0fb9c1', '&:hover': { bgcolor: '#0da8af' } }}
+                >
+                  Закрыть
+                </Button>
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ mb: 3, textAlign: 'center' }}>
+                  <CircularProgress sx={{ color: '#0fb9c1', mb: 2 }} />
+                  <Typography variant="h6" sx={{ color: '#0fb9c1' }}>
+                    {pdfProgress.currentStep}
+                  </Typography>
+                </Box>
+                
+                <List>
+                  {pdfProgress.steps.map((step, index) => (
+                    <ListItem key={index}>
+                      <ListItemIcon>
+                        <CheckCircleIcon sx={{ color: '#0fb9c1' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={step.text} />
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </Container>
     </>
   );
