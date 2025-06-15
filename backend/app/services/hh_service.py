@@ -95,6 +95,7 @@ class HHService:
         print(f"\nПоиск вакансий: {query} в регионах {areas}")
         
         all_vacancies = []
+        seen_ids = set()  # Множество для отслеживания уникальных ID вакансий
         page = 0
         total_pages = 1  # Будет обновлено после первого запроса
         
@@ -123,11 +124,16 @@ class HHService:
                         total_pages = min(data.get('pages', 1), 20)  # Ограничиваем 20 страницами (2000 вакансий)
                         print(f"Всего страниц: {total_pages}")
                     
-                    # Добавляем вакансии из текущей страницы
+                    # Добавляем только уникальные вакансии
                     vacancies = data.get('items', [])
-                    all_vacancies.extend(vacancies)
+                    for vacancy in vacancies:
+                        vacancy_id = vacancy.get('id')
+                        if vacancy_id and vacancy_id not in seen_ids:
+                            seen_ids.add(vacancy_id)
+                            all_vacancies.append(vacancy)
                     
                     print(f"Получено вакансий на странице {page + 1}: {len(vacancies)}")
+                    print(f"Уникальных вакансий после обработки страницы: {len(all_vacancies)}")
                     
                     # Увеличиваем номер страницы
                     page += 1
@@ -136,7 +142,7 @@ class HHService:
                     if page < total_pages:
                         await asyncio.sleep(0.25)
                 
-                print(f"Всего получено вакансий: {len(all_vacancies)}")
+                print(f"Всего получено уникальных вакансий: {len(all_vacancies)}")
                 return all_vacancies
                 
             except Exception as e:
