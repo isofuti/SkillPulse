@@ -2,18 +2,121 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, Table, TableCell, TableRow, TableBody } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import cloud from 'd3-cloud';
+import WordCloud from '../components/WordCloud';
+import VacancyList from '../components/VacancyList';
+import { styled as muiStyled } from '@mui/material/styles';
+
+// Анимации
+const gradientAnimation = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const squareAnimation = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const lineAnimation = keyframes`
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+`;
+
+const dotAnimation = keyframes`
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
+`;
 
 // Стилизованные компоненты
+const AnimatedBackground = styled(Box)({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  background: 'linear-gradient(135deg, #2C3E50 0%, #0fb9c1 100%)',
+  backgroundSize: '400% 400%',
+  animation: `${gradientAnimation} 15s ease infinite`,
+  zIndex: -1,
+});
+
+const AnimatedSquare = styled(Box)({
+  position: 'fixed',
+  width: '100px',
+  height: '100px',
+  border: '2px solid rgba(241, 196, 15, 0.3)',
+  animation: `${squareAnimation} 10s linear infinite`,
+});
+
+const AnimatedLine = styled(Box)({
+  position: 'fixed',
+  height: '1px',
+  width: '100%',
+  background: 'linear-gradient(90deg, transparent, #F1C40F, transparent)',
+  animation: `${lineAnimation} 3s linear infinite`,
+});
+
+const AnimatedDot = styled(Box)({
+  position: 'fixed',
+  width: '8px',
+  height: '8px',
+  borderRadius: '50%',
+  backgroundColor: '#F1C40F',
+  animation: `${dotAnimation} 2s ease-in-out infinite`,
+});
+
 const StyledCard = styled(Card)(({ theme }) => ({
-  backgroundColor: 'rgba(44, 62, 80, 0.9)',
-  color: '#fff',
+  backgroundColor: '#2C3E50',
+  color: '#ECF0F1',
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  transition: 'transform 0.2s ease-in-out',
+  transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
   '&:hover': {
     transform: 'translateY(-4px)',
+    boxShadow: '0 4px 20px rgba(15, 185, 193, 0.2)',
+  },
+}));
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  backgroundColor: '#2C3E50',
+  padding: theme.spacing(3),
+  transition: 'box-shadow 0.2s ease-in-out',
+  '&:hover': {
+    boxShadow: '0 4px 20px rgba(15, 185, 193, 0.2)',
+  },
+}));
+
+const SearchPaper = styled(Paper)(({ theme }) => ({
+  backgroundColor: '#2C3E50',
+  padding: theme.spacing(3),
+  transition: 'box-shadow 0.2s ease-in-out',
+  '&:hover': {
+    boxShadow: '0 4px 20px rgba(15, 185, 193, 0.2)',
+  },
+  '& .MuiInputLabel-root': {
+    color: '#ECF0F1',
+  },
+  '& .MuiOutlinedInput-root': {
+    color: '#ECF0F1',
+    '& fieldset': {
+      borderColor: '#0fb9c1',
+    },
+    '&:hover fieldset': {
+      borderColor: '#0fb9c1',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#0fb9c1',
+    },
+  },
+  '& .MuiSelect-icon': {
+    color: '#ECF0F1',
+  },
+  '& .MuiFormLabel-root.Mui-focused': {
+    color: '#0fb9c1',
   },
 }));
 
@@ -176,34 +279,15 @@ const Analysis = () => {
   const salaryChartData = React.useMemo(() => {
     if (!stats?.salary_ranges) {
       console.log('Нет данных для графика');
-      return null;
+      return [];
     }
 
     console.log('Создаем данные для графика из:', stats.salary_ranges);
     
-    const data = {
-      labels: ['0-50k', '50k-100k', '100k-150k', '150k-200k', '200k-250k', '250k-300k', '300k+'],
-      datasets: [
-        {
-          label: 'Количество вакансий',
-          data: [
-            stats.salary_ranges['0-50000'] || 0,
-            stats.salary_ranges['50000-100000'] || 0,
-            stats.salary_ranges['100000-150000'] || 0,
-            stats.salary_ranges['150000-200000'] || 0,
-            stats.salary_ranges['200000-250000'] || 0,
-            stats.salary_ranges['250000-300000'] || 0,
-            stats.salary_ranges['300000+'] || 0,
-          ],
-          backgroundColor: 'rgba(15, 185, 193, 0.6)',
-          borderColor: 'rgba(15, 185, 193, 1)',
-          borderWidth: 1,
-        },
-      ],
-    };
-
-    console.log('Данные для графика:', data);
-    return data;
+    return Object.entries(stats.salary_ranges).map(([range, count]) => ({
+      name: range,
+      value: count
+    }));
   }, [stats]);
 
   // Подготовка данных для облака слов
@@ -259,231 +343,206 @@ const Analysis = () => {
 
   // Рендеринг облака слов
   const renderWordCloud = () => {
-    if (!wordCloudData.length) {
-      return (
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Нет данных для отображения облака слов
-          </Typography>
-        </Box>
-      );
-    }
+    if (!stats?.word_cloud) return null;
 
     return (
-      <StyledTagCloud>
-        <canvas ref={canvasRef} />
-      </StyledTagCloud>
+      <Grid item xs={12}>
+        <WordCloud words={stats.word_cloud} />
+      </Grid>
     );
   };
 
   // Рендеринг списка вакансий
   const renderVacanciesList = () => {
-    if (!stats?.vacancies?.length) {
-      return (
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Нет данных о вакансиях
-          </Typography>
-        </Box>
-      );
-    }
+    if (!stats?.vacancies) return null;
 
     return (
-      <List>
-        {stats.vacancies.map((vacancy) => (
-          <React.Fragment key={vacancy.id}>
-            <ListItem>
-              <ListItemText
-                primary={
-                  <Link href={vacancy.url} target="_blank" rel="noopener noreferrer">
-                    {vacancy.name}
-                  </Link>
-                }
-                secondary={
-                  <>
-                    <Typography component="span" variant="body2" color="text.primary">
-                      {formatSalary(vacancy.salary)}
-                    </Typography>
-                    {` — ${vacancy.employer} — ${vacancy.area}`}
-                  </>
-                }
-              />
-            </ListItem>
-            <Divider />
-          </React.Fragment>
-        ))}
-      </List>
+      <Grid item xs={12}>
+        <Paper elevation={3} sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Список вакансий
+          </Typography>
+          <VacancyList vacancies={stats.vacancies} />
+        </Paper>
+      </Grid>
     );
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Анализ вакансий
-      </Typography>
-      
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <form onSubmit={handleSubmit}>
+    <>
+      <AnimatedBackground>
+        <AnimatedSquare style={{ top: '10%', left: '10%' }} />
+        <AnimatedSquare style={{ top: '20%', right: '15%' }} />
+        <AnimatedSquare style={{ bottom: '15%', left: '20%' }} />
+        <AnimatedSquare style={{ bottom: '25%', right: '25%' }} />
+        <AnimatedLine style={{ top: '30%' }} />
+        <AnimatedLine style={{ top: '60%' }} />
+        <AnimatedDot style={{ top: '40%', left: '30%' }} />
+        <AnimatedDot style={{ top: '70%', right: '40%' }} />
+        <AnimatedDot style={{ bottom: '20%', left: '50%' }} />
+      </AnimatedBackground>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, position: 'relative', zIndex: 1 }}>
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          sx={{ 
+            color: '#ECF0F1',
+            fontWeight: 'bold',
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          Анализ рынка вакансий
+        </Typography>
+
+        {/* Форма поиска */}
+        <SearchPaper elevation={3} sx={{ mb: 3 }}>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Поисковый запрос"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth required>
+                  <InputLabel>Регион</InputLabel>
+                  <Select
+                    value={selectedArea}
+                    onChange={(e) => setSelectedArea(e.target.value)}
+                    label="Регион"
+                  >
+                    {mainAreas.map((area) => (
+                      <MenuItem key={area.id} value={area.name}>
+                        {area.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={2}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  type="submit"
+                  disabled={loading}
+                  sx={{ 
+                    height: '100%',
+                    backgroundColor: '#0fb9c1',
+                    '&:hover': {
+                      backgroundColor: '#0da8af',
+                    },
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Анализировать'}
+                </Button>
+              </Grid>
+            </Grid>
+          </form>
+        </SearchPaper>
+
+        {/* Сообщение об ошибке */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, backgroundColor: '#F1C40F' }}>
+            {error}
+          </Alert>
+        )}
+
+        {/* Результаты анализа */}
+        {stats && (
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Поисковый запрос"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                required
-              />
+            {/* Статистика */}
+            <Grid item xs={12} md={4}>
+              <StyledCard>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 'bold' }}>
+                    Общая статистика
+                  </Typography>
+                  <List>
+                    <ListItem>
+                      <ListItemText 
+                        primary="Всего вакансий" 
+                        secondary={stats.total_vacancies} 
+                        primaryTypographyProps={{ color: '#ECF0F1' }}
+                        secondaryTypographyProps={{ color: '#0fb9c1' }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText 
+                        primary="Средняя зарплата" 
+                        secondary={`${stats.average_salary.toLocaleString()} ₽`}
+                        primaryTypographyProps={{ color: '#ECF0F1' }}
+                        secondaryTypographyProps={{ color: '#0fb9c1' }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText 
+                        primary="Медианная зарплата" 
+                        secondary={`${stats.median_salary.toLocaleString()} ₽`}
+                        primaryTypographyProps={{ color: '#ECF0F1' }}
+                        secondaryTypographyProps={{ color: '#0fb9c1' }}
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </StyledCard>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Регион"
-                value={selectedArea}
-                onChange={(e) => setSelectedArea(e.target.value)}
-                required
-                helperText="Доступные регионы: Москва, Санкт-Петербург, Новосибирск, Екатеринбург, Нижний Новгород, Казань, Тюмень, Красноярск, Воронеж, Ростов-на-Дону"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={loading}
-                fullWidth
-              >
-                {loading ? <CircularProgress size={24} /> : 'Анализировать'}
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Paper>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {loading && (
-        <Box sx={{ width: '100%', mb: 4 }}>
-          <LinearProgress />
-        </Box>
-      )}
-
-      {stats && (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <StyledCard>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#fff', fontWeight: 600 }}>
-                  Общая статистика
-                </Typography>
-                <List>
-                  <ListItem>
-                    <ListItemText 
-                      primary="Всего вакансий" 
-                      secondary={stats.total_vacancies}
-                      primaryTypographyProps={{ color: '#fff' }}
-                      secondaryTypographyProps={{ color: '#0FB9C1' }}
-                    />
-                  </ListItem>
-                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
-                  <ListItem>
-                    <ListItemText 
-                      primary="Уникальных вакансий" 
-                      secondary={stats.unique_vacancies}
-                      primaryTypographyProps={{ color: '#fff' }}
-                      secondaryTypographyProps={{ color: '#0FB9C1' }}
-                    />
-                  </ListItem>
-                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
-                  <ListItem>
-                    <ListItemText 
-                      primary="Вакансий с зарплатой" 
-                      secondary={stats.vacancies_with_salary}
-                      primaryTypographyProps={{ color: '#fff' }}
-                      secondaryTypographyProps={{ color: '#0FB9C1' }}
-                    />
-                  </ListItem>
-                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
-                  <ListItem>
-                    <ListItemText 
-                      primary="Вакансий без зарплаты" 
-                      secondary={stats.vacancies_without_salary}
-                      primaryTypographyProps={{ color: '#fff' }}
-                      secondaryTypographyProps={{ color: '#0FB9C1' }}
-                    />
-                  </ListItem>
-                </List>
-              </CardContent>
-            </StyledCard>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <StyledCard>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#fff', fontWeight: 600 }}>
-                  Зарплаты
-                </Typography>
-                <List>
-                  <ListItem>
-                    <ListItemText 
-                      primary="Средняя зарплата" 
-                      secondary={`${new Intl.NumberFormat('ru-RU').format(stats.average_salary)} ₽`}
-                      primaryTypographyProps={{ color: '#fff' }}
-                      secondaryTypographyProps={{ color: '#0FB9C1' }}
-                    />
-                  </ListItem>
-                  <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
-                  <ListItem>
-                    <ListItemText 
-                      primary="Медианная зарплата" 
-                      secondary={`${new Intl.NumberFormat('ru-RU').format(stats.median_salary)} ₽`}
-                      primaryTypographyProps={{ color: '#fff' }}
-                      secondaryTypographyProps={{ color: '#0FB9C1' }}
-                    />
-                  </ListItem>
-                </List>
-              </CardContent>
-            </StyledCard>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
+            {/* График распределения зарплат */}
+            <Grid item xs={12} md={8}>
+              <StyledPaper>
+                <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 'bold' }}>
                   Распределение зарплат
                 </Typography>
-                {renderSalaryChart()}
-              </CardContent>
-            </Card>
-          </Grid>
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={salaryChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ECF0F1" opacity={0.3} />
+                      <XAxis 
+                        dataKey="name" 
+                        stroke="#ECF0F1"
+                        tick={{ fill: '#ECF0F1' }}
+                      />
+                      <YAxis 
+                        stroke="#ECF0F1"
+                        tick={{ fill: '#ECF0F1' }}
+                      />
+                      <RechartsTooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#2C3E50',
+                          border: '1px solid #0fb9c1',
+                          borderRadius: '4px',
+                          color: '#ECF0F1',
+                          boxShadow: '0 2px 10px rgba(15, 185, 193, 0.1)'
+                        }}
+                        formatter={(value) => [`${value} вакансий`, 'Количество']}
+                        labelFormatter={(label) => `Диапазон: ${label}`}
+                      />
+                      <Bar 
+                        dataKey="value" 
+                        fill="#0fb9c1"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+              </StyledPaper>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Облако навыков
-                </Typography>
-                {renderWordCloud()}
-              </CardContent>
-            </Card>
-          </Grid>
+            {/* Облако слов */}
+            {renderWordCloud()}
 
-          <Grid item xs={12}>
-            <StyledCard>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Список вакансий
-                </Typography>
-                {renderVacanciesList()}
-              </CardContent>
-            </StyledCard>
+            {/* Список вакансий */}
+            {renderVacanciesList()}
           </Grid>
-        </Grid>
-      )}
-    </Container>
+        )}
+      </Container>
+    </>
   );
 };
 

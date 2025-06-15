@@ -153,8 +153,11 @@ async def get_vacancy_stats(search: VacancySearch):
                 'employer': v.get('employer', {}).get('name', 'Не указано'),
                 'area': v.get('area', {}).get('name', 'Не указано'),
                 'url': v.get('alternate_url', ''),
-                'snippet': v.get('snippet', {}).get('requirement', ''),
-                'published_at': v.get('published_at', '')
+                'snippet': v.get('snippet', {}).get('requirement', '') or v.get('snippet', {}).get('responsibility', '') or 'Описание отсутствует',
+                'published_at': v.get('published_at', ''),
+                'schedule': v.get('schedule', {}).get('name', 'Не указано'),
+                'experience': v.get('experience', {}).get('name', 'Не указано'),
+                'employment': v.get('employment', {}).get('name', 'Не указано')
             }
             formatted_vacancies.append(formatted_vacancy)
         
