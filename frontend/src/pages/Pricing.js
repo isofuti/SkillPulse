@@ -8,6 +8,8 @@ import StarIcon from '@mui/icons-material/Star';
 import BusinessIcon from '@mui/icons-material/Business';
 import CodeIcon from '@mui/icons-material/Code';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import ExtensionIcon from '@mui/icons-material/Extension';
 
 const fadeIn = keyframes`
   from {
@@ -222,15 +224,23 @@ const IconWrapper = styled(Box)({
   width: '60px',
   height: '60px',
   borderRadius: '50%',
+  background: 'rgba(15, 185, 193, 0.1)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  marginBottom: '20px',
-  background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
-  color: '#ECF0F1',
-  animation: `${float} 3s ease-in-out infinite`,
+  marginBottom: '16px',
+  transition: 'all 0.3s ease',
   '& svg': {
     fontSize: '30px',
+    color: '#0fb9c1',
+    transition: 'all 0.3s ease',
+  },
+  '@media (max-width: 600px)': {
+    width: '50px',
+    height: '50px',
+    '& svg': {
+      fontSize: '25px',
+    },
   },
 });
 
@@ -273,6 +283,7 @@ const ComparisonTable = styled(Table)({
 const AdditionalServicesSection = styled(Box)({
   marginTop: '48px',
   marginBottom: '48px',
+  textAlign: 'center',
 });
 
 const ServiceCard = styled(Card)({
@@ -282,11 +293,20 @@ const ServiceCard = styled(Card)({
   border: '1px solid rgba(15, 185, 193, 0.1)',
   transition: 'all 0.3s ease',
   height: '100%',
-  minHeight: '200px',
+  minHeight: '250px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '24px',
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: '0 8px 30px rgba(15, 185, 193, 0.2)',
     border: '1px solid rgba(15, 185, 193, 0.3)',
+  },
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    minHeight: '220px',
   },
 });
 
@@ -325,6 +345,25 @@ const HorizontalFeatureItem = styled(Box)({
   color: '#ECF0F1',
   fontSize: '0.8rem',
   flexShrink: 0,
+});
+
+const ServiceButton = styled(Button)({
+  background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
+  color: '#ECF0F1',
+  height: '40px',
+  width: '180px',
+  marginTop: '20px',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #2C3E50 0%, #0fb9c1 100%)',
+    transform: 'scale(1.05)',
+    boxShadow: '0 4px 20px rgba(15, 185, 193, 0.3)',
+  },
+  '@media (max-width: 600px)': {
+    width: '160px',
+    height: '36px',
+    fontSize: '0.9rem',
+  },
 });
 
 const Pricing = () => {
@@ -546,43 +585,89 @@ const Pricing = () => {
         </Grid>
 
         <AnimatedSection>
-          <StyledCard sx={{ mt: 6 }}>
-            <StyledCardContent sx={{ p: 4 }}>
-              <Typography variant="h5" component="h3" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
-                Дополнительные услуги
-              </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ color: '#0fb9c1', mb: 2 }}>
-                      Разовая платная аналитика
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 2 }}>
-                      «Глубокий отчёт по 10 навыкам и 5 регионам»: вручную собирается и оформляется экспертами
-                      (более подробные графики, дополнительный сегмент «опыт работы», инсайты по конкуренции)
-                    </Typography>
-                    <Typography variant="h6" sx={{ color: '#0fb9c1' }}>
-                      30 000 ₽ за разовый заказ
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Box>
-                    <Typography variant="h6" sx={{ color: '#0fb9c1', mb: 2 }}>
-                      White label и API-доступ
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 2 }}>
-                      White label для рекрутинговых агентств: брендированный интерфейс, собственный домен,
-                      обучающее видео
-                    </Typography>
-                    <Typography variant="h6" sx={{ color: '#0fb9c1' }}>
-                      200 000 ₽ разово + 10 000 ₽/мес за техподдержку
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </StyledCardContent>
-          </StyledCard>
+          <Typography
+            variant="h3"
+            component="h2"
+            gutterBottom
+            sx={{
+              textAlign: 'center',
+              color: '#ECF0F1',
+              fontWeight: 700,
+              mb: 4,
+              background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Дополнительные услуги
+          </Typography>
+          <Grid container spacing={4} justifyContent="center">
+            <Grid item xs={12} md={6}>
+              <ServiceCard>
+                <IconWrapper>
+                  <LightbulbIcon />
+                </IconWrapper>
+                <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
+                  Разовая платная аналитика
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#ECF0F1', textAlign: 'center', mb: 2 }}>
+                  Глубокий отчёт по 10 навыкам и 5 регионам
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#ECF0F1', textAlign: 'center', mb: 3, opacity: 0.9 }}>
+                  Вручную собирается и оформляется экспертами:
+                  <br />• Более подробные графики
+                  <br />• Дополнительный сегмент «опыт работы»
+                  <br />• Инсайты по конкуренции
+                </Typography>
+                <Typography variant="h6" sx={{ color: '#0fb9c1', fontWeight: 600, mb: 2 }}>
+                  30 000 ₽
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#ECF0F1', opacity: 0.8, mb: 2, display: 'block' }}>
+                  за разовый заказ
+                </Typography>
+                <ServiceButton variant="contained">Связаться</ServiceButton>
+              </ServiceCard>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <ServiceCard>
+                <IconWrapper>
+                  <ExtensionIcon />
+                </IconWrapper>
+                <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 600 }}>
+                  White label и API-доступ
+                </Typography>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" sx={{ color: '#ECF0F1', fontWeight: 600, mb: 1, textAlign: 'center' }}>
+                    White label для рекрутинговых агентств:
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#ECF0F1', mb: 1, opacity: 0.9, textAlign: 'center' }}>
+                    • Брендированный интерфейс
+                    <br />• Собственный домен
+                    <br />• Обучающее видео
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{ color: '#ECF0F1', fontWeight: 600, mb: 1, textAlign: 'center' }}>
+                    API-доступ:
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#ECF0F1', opacity: 0.9, textAlign: 'center' }}>
+                    Программный доступ к агрегированным данным
+                    <br />• Бесплатно до 100 000 запросов/мес
+                    <br />• Далее 0,05 ₽ за запрос
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h6" sx={{ color: '#0fb9c1', fontWeight: 600, textAlign: 'center' }}>
+                    200 000 ₽
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#ECF0F1', opacity: 0.8, display: 'block', textAlign: 'center' }}>
+                    разово + 10 000 ₽/мес за техподдержку
+                  </Typography>
+                </Box>
+                <ServiceButton variant="contained">Связаться</ServiceButton>
+              </ServiceCard>
+            </Grid>
+          </Grid>
         </AnimatedSection>
 
         <AnimatedSection>
