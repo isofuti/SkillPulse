@@ -143,8 +143,6 @@ const Analysis = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
-  const [areas, setAreas] = useState([]);
-  const [flattenedAreas, setFlattenedAreas] = useState([]);
   const [pdfProgress, setPdfProgress] = useState({
     isGenerating: false,
     currentStep: '',
@@ -168,53 +166,9 @@ const Analysis = () => {
     { id: "88", name: "Ростов-на-Дону" }
   ];
 
-  // Функция для "сплющивания" иерархии регионов
-  const flattenAreas = (areas) => {
-    // Находим Россию (id: "113")
-    const russia = areas.find(area => area.id === "113");
-    if (!russia) return [];
 
-    let result = [];
-    // Добавляем только регионы России
-    russia.areas.forEach(area => {
-      result.push({
-        id: area.id,
-        name: area.name
-      });
-      // Добавляем подрегионы, если они есть
-      if (area.areas && area.areas.length > 0) {
-        area.areas.forEach(subArea => {
-          result.push({
-            id: subArea.id,
-            name: `${area.name} - ${subArea.name}`
-          });
-        });
-      }
-    });
-    return result;
-  };
 
-  // Загрузка списка регионов при монтировании компонента
-  useEffect(() => {
-    const fetchAreas = async () => {
-      try {
-        const response = await fetch(API_ENDPOINTS.AREAS);
-        if (!response.ok) {
-          throw new Error('Ошибка при загрузке регионов');
-        }
-        const data = await response.json();
-        setAreas(data);
-        // Создаем плоский список регионов с полными путями
-        const flattened = flattenAreas(data);
-        setFlattenedAreas(flattened);
-      } catch (error) {
-        console.error('Ошибка при загрузке регионов:', error);
-        setError('Не удалось загрузить список регионов');
-      }
-    };
 
-    fetchAreas();
-  }, []);
 
   // Обработчик отправки формы
   const handleSubmit = async (e) => {

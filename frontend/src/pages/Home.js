@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Box, Paper, Grid, Button, Card, CardContent } from '@mui/material';
+import { Container, Typography, Box, Grid, Button, Card, CardContent } from '@mui/material';
 import { Link } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
