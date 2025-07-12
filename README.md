@@ -124,6 +124,11 @@ hr-skillpulse/
 - Используйте pandas 2.3.0+ для Python 3.13
 - Или используйте Python 3.11/3.12 для pandas 2.2.x
 
+**Проблемы с asyncpg на Python 3.13:**
+- asyncpg 0.29.0 не совместим с Python 3.13.4
+- Используйте asyncpg 0.30.0+ для Python 3.13
+- Или используйте requirements-no-asyncpg.txt для исключения asyncpg
+
 ## Лицензия
 
 MIT 
