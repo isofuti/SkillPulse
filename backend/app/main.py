@@ -8,9 +8,16 @@ app = FastAPI()
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # В продакшене заменить на конкретные домены
+    allow_origins=[
+        "http://localhost:3000",
+        "https://testskillpulse.netlify.app",
+        "https://skillpulse.netlify.app",
+        "https://*.netlify.app",
+        "https://*.onrender.com",
+        "*"  # Временно разрешаем все домены для отладки
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -24,4 +31,8 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "message": "SkillPulse API is running"} 
+    return {"status": "healthy", "message": "SkillPulse API is running"}
+
+@app.options("/api/vacancies/stats")
+async def options_vacancies_stats():
+    return {"message": "CORS preflight successful"} 

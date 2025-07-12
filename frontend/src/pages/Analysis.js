@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Card, CardContent, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, IconButton, Tooltip, Dialog, DialogContent, DialogTitle, ListItemIcon, Menu } from '@mui/material';
 import { XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import styled from '@emotion/styled';
@@ -152,6 +152,24 @@ const Analysis = () => {
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
   const [exportLoading, setExportLoading] = useState(false);
 
+  // Проверка подключения к API при загрузке компонента
+  useEffect(() => {
+    const checkApiConnection = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.HEALTH);
+        if (response.ok) {
+          console.log('API подключение успешно');
+        } else {
+          console.error('API недоступен:', response.status);
+        }
+      } catch (error) {
+        console.error('Ошибка подключения к API:', error);
+      }
+    };
+    
+    checkApiConnection();
+  }, []);
+
   // Список основных регионов
   const mainAreas = [
     { id: "1", name: "Москва" },
@@ -184,6 +202,8 @@ const Analysis = () => {
         throw new Error('Регион не найден. Пожалуйста, выберите регион из списка.');
       }
 
+      console.log('Отправляем запрос на:', API_ENDPOINTS.VACANCIES + '/stats');
+      
       const response = await fetch(API_ENDPOINTS.VACANCIES + '/stats', {
         method: 'POST',
         headers: {
@@ -197,7 +217,10 @@ const Analysis = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при получении данных');
+        const errorText = await response.text();
+        console.error('Response status:', response.status);
+        console.error('Response text:', errorText);
+        throw new Error(`Ошибка при получении данных: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -205,7 +228,11 @@ const Analysis = () => {
       setStats(data);
     } catch (error) {
       console.error('Ошибка:', error);
-      setError(error.message);
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        setError('Ошибка подключения к серверу. Проверьте настройки CORS или попробуйте позже.');
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -612,6 +639,15 @@ const Analysis = () => {
             }}
           >
             Анализ рынка вакансий
+          </Typography>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: '#0fb9c1',
+              fontSize: '12px'
+            }}
+          >
+            API: {process.env.REACT_APP_API_URL || 'localhost:8000'}
           </Typography>
           {stats && (
             <>
