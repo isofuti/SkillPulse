@@ -5,8 +5,6 @@ services:
     buildCommand: pip install --upgrade pip && pip install -r requirements-stable.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
       - key: HH_API_URL
         value: https://api.hh.ru
       - key: HH_API_TIMEOUT
