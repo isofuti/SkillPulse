@@ -93,14 +93,23 @@ hr-skillpulse/
 1. Подключите репозиторий к Render
 2. Создайте новый Web Service
 3. Настройки:
-   - Build Command: `pip install -r requirements.txt`
+   - Build Command: `pip install --upgrade pip && pip install -r requirements.txt`
    - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
    - Root Directory: `backend`
 
 ### Переменные окружения
 Для бэкенда на Render добавьте:
+- `PYTHON_VERSION`: 3.11.0
 - `HH_API_URL`: https://api.hh.ru
 - `HH_API_TIMEOUT`: 30
+- `PIP_NO_CACHE_DIR`: 1
+- `PIP_DISABLE_PIP_VERSION_CHECK`: 1
+
+### Решение проблем с деплоем
+Если возникают проблемы с установкой зависимостей на Render:
+1. Убедитесь, что используется Python 3.11.0
+2. Попробуйте использовать `requirements-stable.txt` вместо `requirements.txt`
+3. Проверьте логи сборки на наличие ошибок совместимости
 
 ## Лицензия
 

@@ -2,7 +2,7 @@ services:
   - type: web
     name: skillpulse-backend
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
@@ -10,4 +10,8 @@ services:
       - key: HH_API_URL
         value: https://api.hh.ru
       - key: HH_API_TIMEOUT
-        value: 30 
+        value: 30
+      - key: PIP_NO_CACHE_DIR
+        value: "1"
+      - key: PIP_DISABLE_PIP_VERSION_CHECK
+        value: "1" 
