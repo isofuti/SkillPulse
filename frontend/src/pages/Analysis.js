@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, Table, TableCell, TableRow, TableBody, IconButton, Tooltip, Dialog, DialogContent, DialogTitle, ListItemIcon } from '@mui/material';
+import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, Table, TableCell, TableRow, TableBody, IconButton, Tooltip, Dialog, DialogContent, DialogTitle, ListItemIcon, Menu } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
@@ -9,6 +9,11 @@ import VacancyList from '../components/VacancyList';
 import DownloadIcon from '@mui/icons-material/Download';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import CodeIcon from '@mui/icons-material/Code';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import html2canvas from 'html2canvas';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -159,6 +164,8 @@ const Analysis = () => {
     steps: [],
     error: null
   });
+  const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Список основных регионов
   const mainAreas = [
@@ -599,8 +606,74 @@ const Analysis = () => {
       console.error('Ошибка при генерации PDF:', error);
       setPdfProgress(prev => ({
         ...prev,
-        error: `Произошла ошибка при генерации PDF: ${error.message}. Пожалуйста, попробуйте еще раз.`
+        error: 'Ошибка при генерации PDF отчета'
       }));
+    }
+  };
+
+  const handleExportMenuOpen = (event) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => {
+    setExportMenuAnchor(null);
+  };
+
+  const exportToFormat = async (format) => {
+    if (!stats) return;
+    
+    setExportLoading(true);
+    handleExportMenuClose();
+    
+    try {
+      // Получаем ID региона из названия
+      const areaId = mainAreas.find(area => area.name === selectedArea)?.id;
+      if (!areaId) {
+        throw new Error('Регион не найден');
+      }
+
+      const response = await fetch(`/api/vacancies/export/${format}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query,
+          areas: [parseInt(areaId)],
+          per_page: 100
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ошибка экспорта: ${response.statusText}`);
+      }
+
+      // Получаем имя файла из заголовка
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `вакансии_${query}_${selectedArea}.${format}`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      // Скачиваем файл
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+    } catch (error) {
+      console.error(`Ошибка при экспорте в ${format}:`, error);
+      setError(`Ошибка при экспорте в ${format.toUpperCase()}: ${error.message}`);
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -631,20 +704,56 @@ const Analysis = () => {
             Анализ рынка вакансий
           </Typography>
           {stats && (
-            <Tooltip title="Скачать отчет">
-              <IconButton 
-                onClick={downloadReport}
-                disabled={pdfProgress.isGenerating}
-                sx={{ 
-                  color: '#0fb9c1',
-                  '&:hover': {
-                    color: '#0da8af',
+            <>
+              <Tooltip title="Скачать отчет">
+                <IconButton 
+                  onClick={handleExportMenuOpen}
+                  disabled={exportLoading || pdfProgress.isGenerating}
+                  sx={{ 
+                    color: '#0fb9c1',
+                    '&:hover': {
+                      color: '#0da8af',
+                    }
+                  }}
+                >
+                  {exportLoading ? <CircularProgress size={24} /> : <MoreVertIcon />}
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={exportMenuAnchor}
+                open={Boolean(exportMenuAnchor)}
+                onClose={handleExportMenuClose}
+                PaperProps={{
+                  sx: {
+                    backgroundColor: '#2C3E50',
+                    color: '#ECF0F1',
+                    '& .MuiMenuItem-root': {
+                      '&:hover': {
+                        backgroundColor: '#34495E',
+                      },
+                    },
                   }
                 }}
               >
-                <DownloadIcon />
-              </IconButton>
-            </Tooltip>
+                <MenuItem onClick={() => exportToFormat('json')}>
+                  <DataObjectIcon sx={{ mr: 2, color: '#0fb9c1' }} />
+                  Экспорт в JSON
+                </MenuItem>
+                <MenuItem onClick={() => exportToFormat('csv')}>
+                  <TableChartIcon sx={{ mr: 2, color: '#0fb9c1' }} />
+                  Экспорт в CSV
+                </MenuItem>
+                <MenuItem onClick={() => exportToFormat('xml')}>
+                  <CodeIcon sx={{ mr: 2, color: '#0fb9c1' }} />
+                  Экспорт в XML
+                </MenuItem>
+                <Divider sx={{ backgroundColor: '#ECF0F1', opacity: 0.3 }} />
+                <MenuItem onClick={downloadReport}>
+                  <PictureAsPdfIcon sx={{ mr: 2, color: '#0fb9c1' }} />
+                  Экспорт в PDF
+                </MenuItem>
+              </Menu>
+            </>
           )}
         </Box>
 

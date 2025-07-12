@@ -11,6 +11,10 @@ import About from './pages/About';
 import Analysis from './pages/Analysis';
 import Statistics from './pages/Statistics';
 import Pricing from './pages/Pricing';
+import MarketAnalysis from './pages/MarketAnalysis';
+import Reports from './pages/Reports';
+import QuickAccess from './pages/QuickAccess';
+import Security from './pages/Security';
 
 // Создаем тему с цветами из брендбука
 const theme = createTheme({
@@ -92,11 +96,18 @@ function App() {
         <div className="App">
           <Navbar />
           <Routes>
+            {/* Основные страницы навигации */}
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/analysis" element={<Analysis />} />
             <Route path="/statistics" element={<Statistics />} />
             <Route path="/pricing" element={<Pricing />} />
+            
+            {/* Дополнительные страницы */}
+            <Route path="/market-analysis" element={<MarketAnalysis />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/quick-access" element={<QuickAccess />} />
+            <Route path="/security" element={<Security />} />
           </Routes>
           <Footer />
         </div>

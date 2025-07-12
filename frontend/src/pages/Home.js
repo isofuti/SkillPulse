@@ -386,9 +386,15 @@ const Home = () => {
                   <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
                     Получайте актуальную информацию о трендах, зарплатах и требованиях к специалистам в различных отраслях
                   </Typography>
-                  <StyledButton variant="contained" fullWidth>
+                  <Button
+                    component={Link}
+                    to="/market-analysis"
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                  >
                     Подробнее
-                  </StyledButton>
+                  </Button>
                 </CardContent>
               </StyledCard>
             </AnimatedSection>
@@ -407,9 +413,15 @@ const Home = () => {
                   <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
                     Детальные отчеты и визуализация данных для принятия обоснованных решений
                   </Typography>
-                  <StyledButton variant="contained" fullWidth>
+                  <Button
+                    component={Link}
+                    to="/reports"
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                  >
                     Подробнее
-                  </StyledButton>
+                  </Button>
                 </CardContent>
               </StyledCard>
             </AnimatedSection>
@@ -428,9 +440,15 @@ const Home = () => {
                   <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
                     Мгновенный доступ к актуальным данным через удобный интерфейс
                   </Typography>
-                  <StyledButton variant="contained" fullWidth>
+                  <Button
+                    component={Link}
+                    to="/quick-access"
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                  >
                     Подробнее
-                  </StyledButton>
+                  </Button>
                 </CardContent>
               </StyledCard>
             </AnimatedSection>
@@ -449,9 +467,15 @@ const Home = () => {
                   <Typography variant="body1" sx={{ color: '#ECF0F1', mb: 3 }}>
                     Надежное хранение и защита конфиденциальной информации
                   </Typography>
-                  <StyledButton variant="contained" fullWidth>
+                  <Button
+                    component={Link}
+                    to="/security"
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                  >
                     Подробнее
-                  </StyledButton>
+                  </Button>
                 </CardContent>
               </StyledCard>
             </AnimatedSection>

@@ -20,4 +20,8 @@ app.include_router(areas_router, prefix="/api/areas", tags=["areas"])
 
 @app.get("/")
 async def root():
-    return {"message": "SkillPulse API"} 
+    return {"message": "SkillPulse API"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "SkillPulse API is running"} 

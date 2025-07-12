@@ -40,4 +40,8 @@ yarn-error.log*
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Project specific
+areas_cache.json
+*.log 
