@@ -201,11 +201,36 @@ const IconWrapper = styled(Box)({
   '& svg': {
     fontSize: '30px',
   },
+  [theme => theme.breakpoints.down('sm')]: {
+    width: '50px',
+    height: '50px',
+    marginBottom: '16px',
+    '& svg': {
+      fontSize: '24px',
+    },
+  },
+  [theme => theme.breakpoints.down('xs')]: {
+    width: '40px',
+    height: '40px',
+    marginBottom: '12px',
+    '& svg': {
+      fontSize: '20px',
+    },
+  },
 });
 
 const AnimatedSection = styled(Box)({
   animation: `${fadeIn} 0.8s ease-out`,
   marginBottom: '60px',
+  [theme => theme.breakpoints.down('md')]: {
+    marginBottom: '40px',
+  },
+  [theme => theme.breakpoints.down('sm')]: {
+    marginBottom: '30px',
+  },
+  [theme => theme.breakpoints.down('xs')]: {
+    marginBottom: '20px',
+  },
 });
 
 const Home = () => {
@@ -223,7 +248,10 @@ const Home = () => {
         <AnimatedDot style={{ top: '70%', right: '40%' }} />
         <AnimatedDot style={{ bottom: '20%', left: '50%' }} />
       </AnimatedBackground>
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container maxWidth="lg" sx={{ 
+        py: { xs: 4, sm: 6, md: 8 },
+        px: { xs: 2, sm: 3, md: 4 }
+      }}>
         <AnimatedSection>
           <Typography
             variant="h2"
@@ -233,7 +261,8 @@ const Home = () => {
               textAlign: 'center',
               color: '#ECF0F1',
               fontWeight: 700,
-              mb: 4,
+              mb: { xs: 2, sm: 3, md: 4 },
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3.75rem' },
               background: 'linear-gradient(135deg, #0fb9c1 0%, #2C3E50 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -247,7 +276,8 @@ const Home = () => {
             sx={{
               textAlign: 'center',
               color: '#ECF0F1',
-              mb: 4,
+              mb: { xs: 2, sm: 3, md: 4 },
+              fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' },
               fontWeight: 600,
             }}
           >
@@ -259,9 +289,10 @@ const Home = () => {
             sx={{
               textAlign: 'center',
               color: '#ECF0F1',
-              mb: 8,
+              mb: { xs: 4, sm: 6, md: 8 },
               maxWidth: '800px',
-              margin: '0 auto 60px',
+              margin: { xs: '0 auto 32px', sm: '0 auto 48px', md: '0 auto 60px' },
+              fontSize: { xs: '1rem', sm: '1.125rem', md: '1.5rem' },
               opacity: 0.9,
             }}
           >
@@ -270,11 +301,11 @@ const Home = () => {
           </Typography>
         </AnimatedSection>
 
-        <Grid container spacing={4}>
+        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
           <Grid item xs={12} md={6}>
             <AnimatedSection>
               <StyledCard>
-                <CardContent sx={{ p: 4 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                   <IconWrapper>
                     <TrendingUpIcon />
                   </IconWrapper>
@@ -301,7 +332,7 @@ const Home = () => {
           <Grid item xs={12} md={6}>
             <AnimatedSection>
               <StyledCard>
-                <CardContent sx={{ p: 4 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                   <IconWrapper>
                     <AssessmentIcon />
                   </IconWrapper>
@@ -328,7 +359,7 @@ const Home = () => {
           <Grid item xs={12} md={6}>
             <AnimatedSection>
               <StyledCard>
-                <CardContent sx={{ p: 4 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                   <IconWrapper>
                     <SpeedIcon />
                   </IconWrapper>
@@ -355,7 +386,7 @@ const Home = () => {
           <Grid item xs={12} md={6}>
             <AnimatedSection>
               <StyledCard>
-                <CardContent sx={{ p: 4 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                   <IconWrapper>
                     <SecurityIcon />
                   </IconWrapper>

@@ -92,6 +92,18 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <style>
+        {`
+          html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+          }
+          .App {
+            overflow-x: hidden;
+            max-width: 100%;
+          }
+        `}
+      </style>
       <Router>
         <div className="App">
           <Navbar />
