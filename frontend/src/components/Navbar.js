@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { AppBar, Toolbar, Button, Container } from '@mui/material';
+import { AppBar, Toolbar, Button } from '@mui/material';
 import styled from '@emotion/styled';
 import logoImage from '../assets/Logo.svg';
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Chip, Card, CardContent, CardActions, Link, LinearProgress, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, Table, TableCell, TableRow, TableBody, IconButton, Tooltip, Dialog, DialogContent, DialogTitle, ListItemIcon, Menu } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Card, CardContent, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, IconButton, Tooltip, Dialog, DialogContent, DialogTitle, ListItemIcon, Menu } from '@mui/material';
+import { XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
-import cloud from 'd3-cloud';
+
 import WordCloud from '../components/WordCloud';
 import VacancyList from '../components/VacancyList';
-import DownloadIcon from '@mui/icons-material/Download';
+
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -17,7 +17,7 @@ import DataObjectIcon from '@mui/icons-material/DataObject';
 import html2canvas from 'html2canvas';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
-import { styled as muiStyled } from '@mui/material/styles';
+
 import { API_ENDPOINTS } from '../utils/config';
 
 // Инициализация pdfmake с шрифтами
@@ -135,17 +135,7 @@ const SearchPaper = styled(Paper)(({ theme }) => ({
   },
 }));
 
-const StyledTagCloud = styled(Box)({
-  width: '100%',
-  height: '100%',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  '& .custom-tag-cloud': {
-    width: '100%',
-    height: '100%',
-  },
-});
+
 
 // Компонент страницы анализа
 const Analysis = () => {
@@ -155,9 +145,6 @@ const Analysis = () => {
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
   const [areas, setAreas] = useState([]);
-  const [flattenedAreas, setFlattenedAreas] = useState([]);
-  const canvasRef = useRef(null);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfProgress, setPdfProgress] = useState({
     isGenerating: false,
     currentStep: '',
@@ -288,16 +275,7 @@ const Analysis = () => {
     return `${formattedAmount} ${currency}`;
   };
 
-  // Форматирование даты
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Не указана';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
+
 
   // Подготовка данных для графика зарплат
   const salaryChartData = React.useMemo(() => {
@@ -314,83 +292,9 @@ const Analysis = () => {
     }));
   }, [stats]);
 
-  // Подготовка данных для облака слов
-  const wordCloudData = React.useMemo(() => {
-    if (!stats?.word_cloud) {
-      console.log('Нет данных для облака слов');
-      return [];
-    }
 
-    console.log('Создаем данные для облака слов из:', stats.word_cloud);
 
-    return Object.entries(stats.word_cloud)
-      .filter(([text]) => !text.match(/^\d+$/)) // Исключаем числовые значения
-      .filter(([text]) => text.length > 2) // Исключаем короткие слова
-      .map(([text, value], index) => ({
-        key: `${text}-${index}`,
-        text,
-        value: value * 10,
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 50);
-  }, [stats]);
 
-  // Рендеринг графика зарплат
-  const renderSalaryChart = () => {
-    if (!salaryChartData) {
-      return (
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Нет данных для отображения графика
-          </Typography>
-        </Box>
-      );
-    }
-
-    const data = salaryChartData.datasets[0].data.map((value, index) => ({
-      range: salaryChartData.labels[index],
-      value: value
-    }));
-
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="range" />
-          <YAxis />
-          <RechartsTooltip />
-          <Bar dataKey="value" fill="#0FB9C1" />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  };
-
-  // Рендеринг облака слов
-  const renderWordCloud = () => {
-    if (!stats?.word_cloud) return null;
-
-    return (
-      <Grid item xs={12}>
-        <WordCloud words={stats.word_cloud} />
-      </Grid>
-    );
-  };
-
-  // Рендеринг списка вакансий
-  const renderVacanciesList = () => {
-    if (!stats?.vacancies) return null;
-
-    return (
-      <Grid item xs={12}>
-        <Paper elevation={3} sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Список вакансий
-          </Typography>
-          <VacancyList vacancies={stats.vacancies} />
-        </Paper>
-      </Grid>
-    );
-  };
 
   // Функция для скачивания отчета
   const downloadReport = async () => {

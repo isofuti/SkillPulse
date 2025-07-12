@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, Container, Typography, Grid, Card, CardContent, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip } from '@mui/material';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
@@ -22,17 +22,7 @@ const fadeIn = keyframes`
   }
 `;
 
-const float = keyframes`
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-`;
+
 
 const pulseAnimation = keyframes`
   0% {
@@ -249,25 +239,9 @@ const AnimatedSection = styled(Box)({
   marginBottom: '40px',
 });
 
-const StyledTable = styled(Table)({
-  '& .MuiTableCell-root': {
-    color: '#ECF0F1',
-    borderColor: 'rgba(236, 240, 241, 0.1)',
-  },
-  '& .MuiTableHead-root .MuiTableCell-root': {
-    backgroundColor: 'rgba(15, 185, 193, 0.1)',
-    fontWeight: 600,
-  },
-});
 
-const StyledChip = styled(Chip)({
-  background: 'rgba(15, 185, 193, 0.1)',
-  color: '#0fb9c1',
-  border: '1px solid rgba(15, 185, 193, 0.3)',
-  '&:hover': {
-    background: 'rgba(15, 185, 193, 0.2)',
-  },
-});
+
+
 
 const ComparisonTable = styled(Table)({
   background: 'rgba(44, 62, 80, 0.7)',
@@ -280,11 +254,7 @@ const ComparisonTable = styled(Table)({
   },
 });
 
-const AdditionalServicesSection = styled(Box)({
-  marginTop: '48px',
-  marginBottom: '48px',
-  textAlign: 'center',
-});
+
 
 const ServiceCard = styled(Card)({
   background: 'rgba(44, 62, 80, 0.7)',

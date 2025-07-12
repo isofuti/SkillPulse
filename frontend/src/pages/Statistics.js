@@ -4,8 +4,7 @@ import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import BarChartIcon from '@mui/icons-material/BarChart';
+
 import PieChartIcon from '@mui/icons-material/PieChart';
 
 const fadeIn = keyframes`

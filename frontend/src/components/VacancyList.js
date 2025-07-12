@@ -1,8 +1,6 @@
 import React from 'react';
 import { 
     List, 
-    ListItem, 
-    ListItemText, 
     Typography, 
     Link,
     Box,
