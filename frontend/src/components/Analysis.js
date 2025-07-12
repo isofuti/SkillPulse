@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { API_ENDPOINTS } from '../utils/config';
 
 ChartJS.register(
   CategoryScale,
@@ -45,7 +46,7 @@ const Analysis = () => {
     setShowVacancies(false);
 
     try {
-      const response = await fetch('http://localhost:8000/api/vacancies/stats', {
+      const response = await fetch(API_ENDPOINTS.VACANCIES + '/stats', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

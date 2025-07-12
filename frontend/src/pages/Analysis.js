@@ -18,7 +18,7 @@ import html2canvas from 'html2canvas';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { styled as muiStyled } from '@mui/material/styles';
-import 'jspdf-font';
+import { API_ENDPOINTS } from '../utils/config';
 
 // Инициализация pdfmake с шрифтами
 pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
@@ -211,7 +211,7 @@ const Analysis = () => {
   useEffect(() => {
     const fetchAreas = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/areas');
+        const response = await fetch(API_ENDPOINTS.AREAS);
         if (!response.ok) {
           throw new Error('Ошибка при загрузке регионов');
         }
@@ -243,7 +243,7 @@ const Analysis = () => {
         throw new Error('Регион не найден. Пожалуйста, выберите регион из списка.');
       }
 
-      const response = await fetch('http://localhost:8000/api/vacancies/stats', {
+      const response = await fetch(API_ENDPOINTS.VACANCIES + '/stats', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
