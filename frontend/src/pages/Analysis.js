@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Paper, Grid, TextField, Button, CircularProgress, Alert, Card, CardContent, MenuItem, FormControl, InputLabel, Select, List, ListItem, ListItemText, Divider, IconButton, Tooltip, Dialog, DialogContent, DialogTitle, ListItemIcon, Menu } from '@mui/material';
 import { XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 
 import WordCloud from '../components/WordCloud';
-import VacancyList from '../components/VacancyList';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -145,6 +144,7 @@ const Analysis = () => {
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
   const [areas, setAreas] = useState([]);
+  const [flattenedAreas, setFlattenedAreas] = useState([]);
   const [pdfProgress, setPdfProgress] = useState({
     isGenerating: false,
     currentStep: '',
@@ -579,6 +579,58 @@ const Analysis = () => {
     } finally {
       setExportLoading(false);
     }
+  };
+
+  // Функция для рендеринга списка вакансий
+  const renderVacanciesList = () => {
+    if (!stats?.vacancies || stats.vacancies.length === 0) {
+      return null;
+    }
+
+    return (
+      <Grid item xs={12}>
+        <StyledPaper>
+          <Typography variant="h6" gutterBottom sx={{ color: '#ECF0F1', fontWeight: 'bold' }}>
+            Список вакансий ({stats.vacancies.length})
+          </Typography>
+          <List>
+            {stats.vacancies.slice(0, 10).map((vacancy, index) => (
+              <ListItem key={index} divider>
+                <ListItemText
+                  primary={
+                    <Typography variant="subtitle1" sx={{ color: '#ECF0F1', fontWeight: 'bold' }}>
+                      {vacancy.name}
+                    </Typography>
+                  }
+                  secondary={
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#0fb9c1' }}>
+                        {vacancy.employer?.name || 'Компания не указана'}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#ECF0F1' }}>
+                        {formatSalary(vacancy.salary)}
+                      </Typography>
+                      {vacancy.snippet?.requirement && (
+                        <Typography variant="body2" sx={{ color: '#ECF0F1', opacity: 0.8 }}>
+                          {vacancy.snippet.requirement}
+                        </Typography>
+                      )}
+                    </Box>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+          {stats.vacancies.length > 10 && (
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Typography variant="body2" sx={{ color: '#ECF0F1', opacity: 0.7 }}>
+                Показано 10 из {stats.vacancies.length} вакансий
+              </Typography>
+            </Box>
+          )}
+        </StyledPaper>
+      </Grid>
+    );
   };
 
   return (
